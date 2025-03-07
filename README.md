@@ -96,15 +96,4 @@ For å kjøre prosjektet, må du ha:
 - **RecyclerView** – Vise lister over kurs og studenter
 - **Firebase Firestore** – Database for lagring av data
 
-## 🌟 Videre arbeid
-- Forbedre UI-design
-- Implementere brukerautentisering med Firebase Auth
-- Legge til funksjonalitet for å administrere karakterer
-- Implementere `DiffUtil` i adaptere for mer effektiv listeoppdatering
 
-## 👥 Bidragsytere
-- **[Ditt navn]**
-- **[Medstudenter]**
-
-## 📄 Lisens
-Dette prosjektet er åpent for læring og utvikling. Bruk det fritt!
