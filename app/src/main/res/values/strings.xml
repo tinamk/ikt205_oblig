@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Applikasjons_Avokadoene</string>
+
+    <string name="add_course">Add Course</string>
+    <string name="edit_course">Edit Course</string>
+    <string name="delete_course">Delete Course</string>
+    <string name="course_name">Course Name</string>
+    <string name="course_code">Course Code</string>
+    <string name="instructor_name">Instructor Name</string>
+    <string name="student_count">Student Count</string>
+
+</resources>

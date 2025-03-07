@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/textCourseTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add/Edit Course"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:padding="8dp"/>
+
+    <EditText
+        android:id="@+id/editTextCourseName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Course Name"/>
+
+    <EditText
+        android:id="@+id/editTextCourseCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Course Code"/>
+
+    <EditText
+        android:id="@+id/editTextInstructor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Instructor Name"/>
+
+    <EditText
+        android:id="@+id/editTextStudentsEnrolled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Number of Students"/>
+
+    <Button
+        android:id="@+id/buttonSaveCourse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save Course" />
+    <!--android:layout_gravity="center_horizontal"
+    android:layout_marginTop="16dp"-->
+
+</LinearLayout>

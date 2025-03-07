@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "995933732602",
+    "project_id": "applikasjonsavokadoene",
+    "storage_bucket": "applikasjonsavokadoene.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:995933732602:android:30dd26f2d11211b5869343",
+        "android_client_info": {
+          "package_name": "com.example.applikasjons_avokadoene"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCd9MMqkspyBGUTxa7bsbgN-m0DllZMeuU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
