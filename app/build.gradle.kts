@@ -3,18 +3,16 @@ plugins {
     alias(libs.plugins.kotlin.android)
     // Add Firebase plugin
     id("com.google.gms.google-services")
-
-
 }
 
 android {
     namespace = "com.example.applikasjons_avokadoene"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.applikasjons_avokadoene"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -40,20 +38,18 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
 
-
     // Firebase dependencies
     implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
     // MPAndroidChart for grade distribution visualization
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    implementation(libs.firebase.firestore.ktx)
 
     // Testing dependencies
     testImplementation(libs.junit)

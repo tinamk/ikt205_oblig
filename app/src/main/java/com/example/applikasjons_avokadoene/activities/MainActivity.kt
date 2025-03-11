@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import com.example.applikasjons_avokadoene.R
+import com.example.applikasjons_avokadoene.fragments.CourseFragment
 
 /**
  * Main screen with navigation buttons to Students and Courses sections
@@ -27,6 +28,13 @@ class MainActivity : AppCompatActivity() {
 
         // Set click listeners
         setupClickListeners()
+
+        // Add CourseFragment to the FragmentContainerView
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .add(R.id.fragmentContainerView, CourseFragment())
+                .commit()
+        }
     }
 
     /**

@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.applikasjons_avokadoene.R
 import com.example.applikasjons_avokadoene.models.Course
+import com.example.applikasjons_avokadoene.utils.FirebaseUtil
+import com.google.firebase.Timestamp
 
 class AddEditCourseActivity : AppCompatActivity() {
 
@@ -17,10 +19,18 @@ class AddEditCourseActivity : AppCompatActivity() {
     private lateinit var editTextInstructor: EditText
     private lateinit var editTextStudentsEnrolled: EditText
     private lateinit var buttonSaveCourse: Button
+    
+    private var isEditMode = false
+    private var courseId = ""
+    private var existingGrades = mutableListOf<String>()
+    private var existingAverageGrade = "N/A"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_edit_course)
+
+        // Set title based on mode
+        title = if (intent.hasExtra("COURSE")) "Edit Course" else "Add Course"
 
         // Initialize UI elements
         editTextCourseName = findViewById(R.id.editTextCourseName)
@@ -29,6 +39,23 @@ class AddEditCourseActivity : AppCompatActivity() {
         editTextStudentsEnrolled = findViewById(R.id.editTextStudentsEnrolled)
         buttonSaveCourse = findViewById(R.id.buttonSaveCourse)
 
+        // Check if we're in edit mode
+        if (intent.hasExtra("COURSE")) {
+            isEditMode = true
+            val course = intent.getParcelableExtra<Course>("COURSE")
+            if (course != null) {
+                courseId = course.id
+                existingGrades = course.grades
+                existingAverageGrade = course.averageGrade
+                
+                // Populate fields with existing data
+                editTextCourseName.setText(course.name)
+                editTextCourseCode.setText(course.code)
+                editTextInstructor.setText(course.instructor)
+                editTextStudentsEnrolled.setText(course.studentsEnrolled.toString())
+            }
+        }
+
         // Set click listener
         buttonSaveCourse.setOnClickListener {
             saveCourse()
@@ -36,9 +63,9 @@ class AddEditCourseActivity : AppCompatActivity() {
     }
 
     private fun saveCourse() {
-        val courseName = editTextCourseName.text.toString()
-        val courseCode = editTextCourseCode.text.toString()
-        val instructor = editTextInstructor.text.toString()
+        val courseName = editTextCourseName.text.toString().trim()
+        val courseCode = editTextCourseCode.text.toString().trim()
+        val instructor = editTextInstructor.text.toString().trim()
         val studentsEnrolled = editTextStudentsEnrolled.text.toString().toIntOrNull()
 
         if (courseName.isEmpty() || courseCode.isEmpty() || instructor.isEmpty() || studentsEnrolled == null) {
@@ -46,13 +73,43 @@ class AddEditCourseActivity : AppCompatActivity() {
             return
         }
 
-        val newCourse = Course(courseName, courseCode, instructor, studentsEnrolled)
+        if (isEditMode) {
+            // Update existing course
+            val updatedCourse = Course(
+                id = courseId,
+                name = courseName,
+                code = courseCode,
+                instructor = instructor,
+                studentsEnrolled = studentsEnrolled,
+                grades = existingGrades,
+                averageGrade = existingAverageGrade,
+                updatedAt = Timestamp.now()
+            )
+            
+            FirebaseUtil.getCoursesCollection().document(courseId)
+                .update(updatedCourse.toMap())
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Course updated successfully", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Error updating course: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } else {
+            // Create new course
+            val newCourse = Course(
+                name = courseName,
+                code = courseCode,
+                instructor = instructor,
+                studentsEnrolled = studentsEnrolled,
+                createdAt = Timestamp.now(),
+                updatedAt = Timestamp.now()
+            )
 
-        val resultIntent = Intent()
-        resultIntent.putExtra("newCourse", newCourse)
-        setResult(Activity.RESULT_OK, resultIntent)
-        finish()
-
-
+            val resultIntent = Intent()
+            resultIntent.putExtra("NEW_COURSE", newCourse)
+            setResult(Activity.RESULT_OK, resultIntent)
+            finish()
+        }
     }
 }

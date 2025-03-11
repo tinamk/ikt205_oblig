@@ -5,23 +5,31 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Course List"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:paddingBottom="8dp"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/course_list"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+            
+        <Button
+            android:id="@+id/btn_add_new_course"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_course"/>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewCourses"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
-    <Button
-        android:id="@+id/btn_add_new_course"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add New Course"/>
 
 </LinearLayout>

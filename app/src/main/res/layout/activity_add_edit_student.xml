@@ -8,34 +8,76 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add/Edit Student"
+        android:text="@string/add_edit_student"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:paddingBottom="8dp"/>
+        android:paddingBottom="16dp"/>
 
-    <EditText
-        android:id="@+id/editTextStudentName"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Student Name"/>
+        android:layout_marginBottom="8dp">
+        
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextStudentName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:hint="@string/enter_student_name"
+            android:inputType="textPersonName"
+            android:autofillHints="name"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <EditText
-        android:id="@+id/editTextStudentId"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Student ID"
-        android:inputType="number"/>
-
-    <EditText
-        android:id="@+id/editTextStudentCourse"
+        android:layout_marginBottom="8dp">
+        
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextStudentId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:hint="@string/enter_student_id"
+            android:inputType="text"
+            android:autofillHints="username"/>
+    </com.google.android.material.textfield.TextInputLayout>
+        
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Assigned Course"/>
+        android:layout_marginBottom="8dp">
+        
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextStudentEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:hint="@string/enter_student_email"
+            android:inputType="textEmailAddress"
+            android:autofillHints="emailAddress"/>
+    </com.google.android.material.textfield.TextInputLayout>
+        
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+        
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextStudentPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:hint="@string/enter_student_phone"
+            android:inputType="phone"
+            android:autofillHints="phone"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/buttonSaveStudent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Save Student" />
+        android:minHeight="48dp"
+        android:text="@string/save_student" />
 
 </LinearLayout>

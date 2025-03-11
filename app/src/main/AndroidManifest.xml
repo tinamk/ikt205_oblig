@@ -16,7 +16,7 @@
         <!-- Main Activity (Launcher) -->
         <activity
             android:name=".activities.MainActivity"
-            android:exported="true"> <!-- FIXED: Correct syntax for android:exported -->
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,14 +24,34 @@
             </intent-filter>
         </activity>
 
-        <!-- Course List Activity -->
-        <activity
-            android:name=".activities.CourseListActivity"
-            android:exported="false" /> <!-- Set to false unless needed outside the app -->
-
         <!-- Student List Activity -->
         <activity
             android:name=".activities.StudentListActivity"
+            android:exported="false" />
+            
+        <!-- Course List Activity -->
+        <activity
+            android:name=".activities.CourseListActivity"
+            android:exported="false" />
+            
+        <!-- Add/Edit Course Activity -->
+        <activity
+            android:name=".activities.AddEditCourseActivity"
+            android:exported="false" />
+            
+        <!-- Add/Edit Student Activity -->
+        <activity
+            android:name=".activities.AddEditStudentActivity"
+            android:exported="false" />
+            
+        <!-- Course Detail Activity -->
+        <activity
+            android:name=".activities.CourseDetailActivity"
+            android:exported="false" />
+            
+        <!-- Add Grade Activity -->
+        <activity
+            android:name=".activities.AddGradeActivity"
             android:exported="false" />
 
     </application>

@@ -41,5 +41,21 @@
         android:layout_height="wrap_content"
         android:text="Enrolled Students: 30"
         android:textSize="16sp"/>
+        
+    <TextView
+        android:id="@+id/textGradeDistribution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Grade Distribution"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+        
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/barChartGrades"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="8dp"/>
 
 </LinearLayout>

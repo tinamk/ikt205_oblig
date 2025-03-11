@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/editCourseName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Course Name" />
+
+    <EditText
+        android:id="@+id/editCourseCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Course Code" />
+
+    <EditText
+        android:id="@+id/editInstructor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Instructor" />
+
+    <EditText
+        android:id="@+id/editStudentsEnrolled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Students Enrolled"
+        android:inputType="number" />
+
+</LinearLayout>

@@ -2,79 +2,69 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
     android:orientation="vertical"
-    android:padding="12dp"
-    android:background="@android:color/white"
-    android:elevation="2dp"
-    android:gravity="center_horizontal">
+    android:padding="16dp">
 
-    <TextView
-        android:id="@+id/textCourseName"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/course_name"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"/>
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textCourseName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Course Name"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btn_edit_course"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_edit" />
+
+        <ImageButton
+            android:id="@+id/btn_delete_course"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_delete" />
+
+        <ImageButton
+            android:id="@+id/btn_add_course"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add" />
+
+        <ImageButton
+            android:id="@+id/btn_grade_course"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_grade" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textCourseCode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/course_code"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"/>
+        android:text="Code: COURSE101" />
 
     <TextView
         android:id="@+id/textInstructorName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/instructor_name"
-        android:textSize="14sp"
-        android:textColor="@android:color/black"/>
+        android:text="Instructor: Dr. Example" />
 
     <TextView
         android:id="@+id/textStudentCount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/student_count"
-        android:textSize="14sp"
-        android:textColor="@android:color/black"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
+        android:text="Students: 30" />
+    <TextView
+        android:id="@+id/textAverageGrade"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:background="@android:color/darker_gray"
-        android:layout_marginTop="8dp">
-
-
-    <ImageButton
-        android:id="@+id/btn_add_course"
-        android:layout_width="40dp"
-        android:layout_height="50dp"
-        android:contentDescription="@string/add_course"
-        android:src="@android:drawable/ic_input_add"
-        android:layout_weight="1"/>
-
-    <ImageButton
-        android:id="@+id/btn_edit_course"
-        android:layout_width="40dp"
-        android:layout_height="50dp"
-        android:src="@android:drawable/ic_menu_edit"
-        android:contentDescription="@string/edit_course"
-        android:layout_weight="1"/>
-
-    <ImageButton
-        android:id="@+id/btn_delete_course"
-        android:layout_width="40dp"
-        android:layout_height="50dp"
-        android:contentDescription="@string/delete_course"
-        android:src="@android:drawable/ic_menu_delete"
-        android:layout_weight="1"/>
-
-    </LinearLayout>
+        android:text="Average Grade: N/A" />
 
 </LinearLayout>

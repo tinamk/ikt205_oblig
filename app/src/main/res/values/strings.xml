@@ -8,5 +8,47 @@
     <string name="course_code">Course Code</string>
     <string name="instructor_name">Instructor Name</string>
     <string name="student_count">Student Count</string>
+    
+    <!-- Student related strings -->
+    <string name="add_edit_student">Add/Edit Student</string>
+    <string name="enter_student_name">Enter Student Name</string>
+    <string name="enter_student_id">Enter Student ID</string>
+    <string name="enter_student_email">Enter Student Email</string>
+    <string name="enter_student_phone">Enter Student Phone</string>
+    <string name="save_student">Save Student</string>
+    <string name="student_list">Student List</string>
+    <string name="add_student">Add Student</string>
+    
+    <!-- Course related strings -->
+    <string name="course_list">Course List</string>
+    
+    <!-- Grade related strings -->
+    <string name="add_grade">Add Grade</string>
+    <string name="enter_grade">Enter Grade (A-F)</string>
+    <string name="save_grade">Save Grade</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="delete_student">Delete Student</string>
+    
+    <!-- Notification messages (short pop-up messages that appear at the bottom of the screen) -->
+    <string name="course_added_success">Course added successfully</string>
+    <string name="failed_to_add_course">Failed to add course: %1$s</string>
+    <string name="confirm_delete_course">Are you sure you want to delete %1$s? This will also delete all related grades.</string>
+    <string name="error_loading_students">Error loading students: %1$s</string>
+    <string name="course_and_grades_deleted">Course and grades deleted</string>
+    <string name="error_deleting_course">Error deleting course: %1$s</string>
+    <string name="error_deleting_grades">Error deleting grades: %1$s</string>
+    <string name="error_finding_grades">Error finding grades: %1$s</string>
+    <string name="error_fetching_courses">Error fetching courses: %1$s</string>
+    <string name="confirm_delete_student">Are you sure you want to delete %1$s? This will also delete all their grades.</string>
+    <string name="student_and_grades_deleted">Student and grades deleted</string>
+    <string name="error_deleting_student">Error deleting student: %1$s</string>
+    
+    <!-- Format strings for adapters -->
+    <string name="course_code_format">Code: %1$s</string>
+    <string name="instructor_format">Instructor: %1$s</string>
+    <string name="students_format">Students: %1$d</string>
+    <string name="average_grade_format">Average Grade: %1$s</string>
 
 </resources>
