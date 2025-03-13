@@ -4,12 +4,19 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.applikasjons_avokadoene.R
+import com.example.applikasjons_avokadoene.activities.AddEditCourseActivity.Companion.RESULT_COURSE_ADDED
+import com.example.applikasjons_avokadoene.activities.AddEditCourseActivity.Companion.RESULT_COURSE_UPDATED
 import com.example.applikasjons_avokadoene.adapters.CourseAdapter
 import com.example.applikasjons_avokadoene.models.Course
 import com.example.applikasjons_avokadoene.utils.FirebaseUtil
@@ -26,14 +33,19 @@ class CourseListActivity : AppCompatActivity() {
     private lateinit var courseAdapter: CourseAdapter
     private val courseList = mutableListOf<Course>()
     private lateinit var btnAddNewCourse: Button
+    private lateinit var editTextSearch: EditText
+    private val allCourses = mutableListOf<Course>() // Store all courses for filtering
+    private lateinit var progressBar: ProgressBar
 
     companion object {
         // Constants for activity results and intent extras
         const val REQUEST_ADD_COURSE = 1 // Request code for adding a course (used with startActivityForResult)
+        const val REQUEST_EDIT_COURSE = 2 // Request code for editing a course
         const val EXTRA_NEW_COURSE = "NEW_COURSE"
         const val EXTRA_COURSE = "COURSE"
         const val EXTRA_COURSE_ID = "COURSE_ID"
         const val EXTRA_COURSE_NAME = "COURSE_NAME"
+        const val REQUEST_ADD_GRADE = 3
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +57,8 @@ class CourseListActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recyclerViewCourses)
         recyclerView.layoutManager = LinearLayoutManager(this)
         btnAddNewCourse = findViewById(R.id.btn_add_new_course)
+        editTextSearch = findViewById(R.id.editTextSearchCourse)
+        progressBar = findViewById(R.id.progressBarCourses)
 
         // Initialize adapter with click handlers for different actions
         courseAdapter = CourseAdapter(
@@ -64,12 +78,36 @@ class CourseListActivity : AppCompatActivity() {
             val intent = Intent(this, AddEditCourseActivity::class.java)
             startActivityForResult(intent, REQUEST_ADD_COURSE)
         }
+        
+        // Set up search functionality
+        setupSearch()
     }
     
-    override fun onResume() {
-        super.onResume()
-        // Refresh data when returning to this activity (e.g., after editing a course)
-        fetchCoursesFromFirestore()
+    private fun setupSearch() {
+        editTextSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            
+            override fun afterTextChanged(s: Editable?) {
+                filterCourses(s.toString())
+            }
+        })
+    }
+    
+    private fun filterCourses(query: String) {
+        val filteredList = if (query.isEmpty()) {
+            allCourses
+        } else {
+            allCourses.filter { course ->
+                course.name.contains(query, ignoreCase = true) || 
+                course.code.contains(query, ignoreCase = true)
+            }
+        }
+        
+        courseList.clear()
+        courseList.addAll(filteredList)
+        courseAdapter.updateCourseList(courseList)
     }
 
     /**
@@ -77,22 +115,40 @@ class CourseListActivity : AppCompatActivity() {
      * This method gets all courses from Firebase and displays them in the RecyclerView
      */
     private fun fetchCoursesFromFirestore() {
+        // Show progress bar
+        progressBar.visibility = View.VISIBLE
+        
         FirebaseUtil.getCoursesCollection()
             .get()
             .addOnSuccessListener { documents ->
-                courseList.clear() // Clear list before adding new data
+                allCourses.clear() // Clear list before adding new data
+                courseList.clear()
+                
                 for (document in documents) {
                     val course = document.toObject<Course>().apply {
                         id = document.id // Assign Firestore document ID
                     }
-                    courseList.add(course)
+                    allCourses.add(course)
                 }
+                
+                // Apply any active filter
+                val currentFilter = editTextSearch.text.toString()
+                if (currentFilter.isEmpty()) {
+                    courseList.addAll(allCourses)
+                } else {
+                    filterCourses(currentFilter)
+                }
+                
                 courseAdapter.updateCourseList(courseList) // Update the adapter with new data
+                
+                // Hide progress bar
+                progressBar.visibility = View.GONE
             }
             .addOnFailureListener { e ->
-                // Show a notification message (Toast) if there's an error fetching courses
-                // Toast messages are small pop-up notifications that appear at the bottom of the screen
-                // and automatically disappear after a short time
+                // Hide progress bar
+                progressBar.visibility = View.GONE
+                
+                // Show error message
                 Toast.makeText(this, getString(R.string.error_fetching_courses, e.message), Toast.LENGTH_SHORT).show()
             }
     }
@@ -104,24 +160,32 @@ class CourseListActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        // Check if the result is from adding a course and was successful
-        if (requestCode == REQUEST_ADD_COURSE && resultCode == Activity.RESULT_OK) {
-            val newCourse = data?.getParcelableExtra<Course>(EXTRA_NEW_COURSE)
-            if (newCourse != null) {
-                // Save the new course to Firebase
-                FirebaseUtil.getCoursesCollection()
-                    .add(newCourse.toMap()) // Save to Firestore
-                    .addOnSuccessListener { documentRef ->
-                        newCourse.id = documentRef.id
-                        courseList.add(newCourse)
-                        courseAdapter.updateCourseList(courseList) // Update the adapter with new data
-                        // Show a success notification message
-                        Toast.makeText(this, getString(R.string.course_added_success), Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { e ->
-                        // Show an error notification if adding the course fails
-                        Toast.makeText(this, getString(R.string.failed_to_add_course, e.message), Toast.LENGTH_SHORT).show()
-                    }
+        // Refresh data based on result type
+        if (requestCode == REQUEST_ADD_COURSE && resultCode == RESULT_COURSE_ADDED) {
+            // Course was added
+            fetchCoursesFromFirestore()
+            showSuccessDialog(getString(R.string.course_added_title), getString(R.string.course_added_message))
+        } else if (requestCode == REQUEST_EDIT_COURSE && resultCode == RESULT_COURSE_UPDATED) {
+            // Course was updated
+            fetchCoursesFromFirestore()
+        } else if (requestCode == REQUEST_ADD_GRADE) {
+            if (resultCode == AddGradeActivity.RESULT_GRADE_ADDED || 
+                resultCode == AddGradeActivity.RESULT_GRADE_UPDATED) {
+                // Grade was added or updated, refresh data
+                fetchCoursesFromFirestore()
+                
+                // Show confirmation message
+                val studentName = data?.getStringExtra("STUDENT_NAME") ?: "Student"
+                val courseName = data?.getStringExtra("COURSE_NAME") ?: "course"
+                val gradeLetter = data?.getStringExtra("GRADE_LETTER") ?: ""
+                
+                val message = if (resultCode == AddGradeActivity.RESULT_GRADE_ADDED) {
+                    getString(R.string.added_grade_format, gradeLetter, studentName, courseName)
+                } else {
+                    getString(R.string.updated_grade_format, gradeLetter, studentName, courseName)
+                }
+                
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -133,7 +197,7 @@ class CourseListActivity : AppCompatActivity() {
     private fun editCourse(course: Course) {
         val intent = Intent(this, AddEditCourseActivity::class.java)
         intent.putExtra(EXTRA_COURSE, course)
-        startActivity(intent)
+        startActivityForResult(intent, REQUEST_EDIT_COURSE)
     }
 
     /**
@@ -157,6 +221,9 @@ class CourseListActivity : AppCompatActivity() {
      * Uses a batch operation to ensure all related data is deleted
      */
     private fun deleteCourseAndGrades(course: Course) {
+        // Show progress bar
+        progressBar.visibility = View.VISIBLE
+        
         // First delete all grades for this course
         FirebaseUtil.getGradesCollection()
             .whereEqualTo("courseId", course.id)
@@ -175,23 +242,36 @@ class CourseListActivity : AppCompatActivity() {
                         FirebaseUtil.getCoursesCollection().document(course.id)
                             .delete()
                             .addOnSuccessListener {
+                                // Hide progress bar
+                                progressBar.visibility = View.GONE
+                                
                                 // Show a success notification message
                                 Toast.makeText(this, getString(R.string.course_and_grades_deleted), Toast.LENGTH_SHORT).show()
-                                // Remove from local list and update adapter
+                                // Remove from local lists and update adapter
+                                allCourses.remove(course)
                                 courseList.remove(course)
                                 courseAdapter.updateCourseList(courseList) // Update the adapter with new data
                             }
                             .addOnFailureListener { e ->
+                                // Hide progress bar
+                                progressBar.visibility = View.GONE
+                                
                                 // Show an error notification if course deletion fails
                                 Toast.makeText(this, getString(R.string.error_deleting_course, e.message), Toast.LENGTH_SHORT).show()
                             }
                     }
                     .addOnFailureListener { e ->
+                        // Hide progress bar
+                        progressBar.visibility = View.GONE
+                        
                         // Show an error notification if grades deletion fails
                         Toast.makeText(this, getString(R.string.error_deleting_grades, e.message), Toast.LENGTH_SHORT).show()
                     }
             }
             .addOnFailureListener { e ->
+                // Hide progress bar
+                progressBar.visibility = View.GONE
+                
                 // Show an error notification if finding grades fails
                 Toast.makeText(this, getString(R.string.error_finding_grades, e.message), Toast.LENGTH_SHORT).show()
             }
@@ -203,7 +283,7 @@ class CourseListActivity : AppCompatActivity() {
      */
     private fun addCourse(course: Course) {
         val intent = Intent(this, AddEditCourseActivity::class.java)
-        startActivity(intent)
+        startActivityForResult(intent, REQUEST_ADD_COURSE)
     }
     
     /**
@@ -214,6 +294,17 @@ class CourseListActivity : AppCompatActivity() {
         val intent = Intent(this, AddGradeActivity::class.java)
         intent.putExtra(EXTRA_COURSE_ID, course.id)
         intent.putExtra(EXTRA_COURSE_NAME, course.name)
-        startActivity(intent)
+        startActivityForResult(intent, REQUEST_ADD_GRADE)
+    }
+
+    private fun showSuccessDialog(title: String, message: String) {
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(getString(R.string.ok)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setIcon(android.R.drawable.ic_dialog_info)
+            .show()
     }
 }

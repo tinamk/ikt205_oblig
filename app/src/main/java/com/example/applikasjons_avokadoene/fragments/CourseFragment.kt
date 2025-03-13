@@ -70,7 +70,7 @@ class CourseFragment : Fragment() {
         editStudentsEnrolled.setText(course.studentsEnrolled.toString())
 
         builder.setView(dialogLayout)
-            .setPositiveButton("Save") { dialog, which ->
+            .setPositiveButton(getString(R.string.save)) { dialog, which ->
                 val newName = editCourseName.text.toString()
                 val newCode = editCourseCode.text.toString()
                 val newInstructor = editInstructor.text.toString()
@@ -90,7 +90,7 @@ class CourseFragment : Fragment() {
                     courseAdapter.updateCourseList(courseList)
                 }
             }
-            .setNegativeButton("Cancel") { dialog, which ->
+            .setNegativeButton(getString(R.string.cancel)) { dialog, which ->
                 dialog.dismiss()
             }
             .show()
@@ -114,7 +114,7 @@ class CourseFragment : Fragment() {
         val addStudentsEnrolled = dialogLayout.findViewById<EditText>(R.id.addStudentsEnrolled)
 
         builder.setView(dialogLayout)
-            .setPositiveButton("Add") { dialog, which ->
+            .setPositiveButton(getString(R.string.add_course)) { dialog, which ->
                 val newName = addCourseName.text.toString()
                 val newCode = addCourseCode.text.toString()
                 val newInstructor = addInstructor.text.toString()
@@ -129,7 +129,7 @@ class CourseFragment : Fragment() {
                 courseList.add(newCourse)
                 courseAdapter.updateCourseList(courseList)
             }
-            .setNegativeButton("Cancel") { dialog, which ->
+            .setNegativeButton(getString(R.string.cancel)) { dialog, which ->
                 dialog.dismiss()
             }
             .show()
@@ -139,23 +139,63 @@ class CourseFragment : Fragment() {
         val builder = AlertDialog.Builder(context)
         val inflater = layoutInflater
         val dialogLayout = inflater.inflate(R.layout.dialog_grade_course, null)
-        val editGrade = dialogLayout.findViewById<EditText>(R.id.editGrade)
-
-        builder.setView(dialogLayout)
-            .setPositiveButton("Save") { dialog, which ->
-                val newGrade = editGrade.text.toString().uppercase()
-                if (newGrade.matches(Regex("[A-F]"))) {
-                    course.grades.add(newGrade)
-                    course.calculateAverageGrade()
-                    courseAdapter.updateCourseList(courseList)
-                } else {
-                    Toast.makeText(context, "Invalid grade. Please enter a grade between A and F.", Toast.LENGTH_SHORT).show()
-                }
+        
+        // UI elements
+        val textViewSelectedGrade = dialogLayout.findViewById<android.widget.TextView>(R.id.textViewSelectedGrade)
+        
+        // Get references to all grade buttons
+        val btnGradeA = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeA)
+        val btnGradeB = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeB)
+        val btnGradeC = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeC)
+        val btnGradeD = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeD)
+        val btnGradeE = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeE)
+        val btnGradeF = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeF)
+        
+        // Variable to store the selected grade
+        var selectedGrade: String? = null
+        
+        // Create the dialog with null listeners for buttons
+        val dialog = builder.setView(dialogLayout)
+            .setPositiveButton(getString(R.string.save), null)
+            .setNegativeButton(getString(R.string.cancel), null)
+            .create()
+        
+        // Helper function to update selected grade
+        val setSelectedGrade = { grade: String ->
+            selectedGrade = grade
+            textViewSelectedGrade.text = getString(R.string.selected_grade_format, grade)
+            
+            // Update button appearance for selected state
+            val buttons = listOf(btnGradeA, btnGradeB, btnGradeC, btnGradeD, btnGradeE, btnGradeF)
+            buttons.forEach { button ->
+                button.alpha = if (button.text.toString() == grade) 1.0f else 0.6f
             }
-            .setNegativeButton("Cancel") { dialog, which ->
+        }
+        
+        // Set click listeners for each grade button
+        btnGradeA.setOnClickListener { setSelectedGrade(getString(R.string.grade_a)) }
+        btnGradeB.setOnClickListener { setSelectedGrade(getString(R.string.grade_b)) }
+        btnGradeC.setOnClickListener { setSelectedGrade(getString(R.string.grade_c)) }
+        btnGradeD.setOnClickListener { setSelectedGrade(getString(R.string.grade_d)) }
+        btnGradeE.setOnClickListener { setSelectedGrade(getString(R.string.grade_e)) }
+        btnGradeF.setOnClickListener { setSelectedGrade(getString(R.string.grade_f)) }
+        
+        // Show the dialog
+        dialog.show()
+        
+        // Set up the positive button click listener after dialog is shown
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            if (selectedGrade != null) {
+                // Add the grade and update the UI
+                course.grades.add(selectedGrade!!)
+                course.calculateAverageGrade()
+                courseAdapter.updateCourseList(courseList)
                 dialog.dismiss()
+            } else {
+                // Prompt user to select a grade
+                Toast.makeText(context, getString(R.string.error_invalid_grade), Toast.LENGTH_SHORT).show()
             }
-            .show()
+        }
     }
 
     private fun addDummyCourses() {

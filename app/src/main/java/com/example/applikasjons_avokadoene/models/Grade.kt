@@ -12,6 +12,7 @@ data class Grade(
     var studentName: String = "",
     var courseId: String = "",
     var courseName: String = "",
+    var grade: String = "",
     var score: Double = 0.0,
     var date: Timestamp = Timestamp.now()
 ) : Serializable {
@@ -25,6 +26,7 @@ data class Grade(
             "studentName" to studentName,
             "courseId" to courseId,
             "courseName" to courseName,
+            "grade" to grade,
             "score" to score,
             "date" to date
         )

@@ -5,12 +5,92 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/editGrade"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/enter_grade"
-        android:inputType="textCapCharacters"
-        android:minHeight="48dp" />
+        android:text="@string/add_grade"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/select_grade"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/btnGradeA"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="@string/grade_a"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:backgroundTint="@android:color/holo_green_light" />
+
+        <Button
+            android:id="@+id/btnGradeB"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="@string/grade_b"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:backgroundTint="@android:color/holo_green_dark" />
+
+        <Button
+            android:id="@+id/btnGradeC"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="@string/grade_c"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:backgroundTint="@android:color/holo_orange_light" />
+
+        <Button
+            android:id="@+id/btnGradeD"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="@string/grade_d"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:backgroundTint="@android:color/holo_orange_dark" />
+
+        <Button
+            android:id="@+id/btnGradeE"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="@string/grade_e"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:backgroundTint="@android:color/holo_red_light" />
+
+        <Button
+            android:id="@+id/btnGradeF"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="@string/grade_f"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:backgroundTint="@android:color/holo_red_dark" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textViewSelectedGrade"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/selected_grade_none"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
 
 </LinearLayout>

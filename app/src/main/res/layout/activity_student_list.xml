@@ -26,10 +26,35 @@
             android:layout_height="wrap_content"
             android:text="@string/add_student"/>
     </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewStudents"
+    
+    <EditText
+        android:id="@+id/editTextSearchStudent"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:hint="Search students by name"
+        android:inputType="text"
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawablePadding="8dp"
+        android:padding="12dp"
+        android:background="@android:drawable/editbox_background"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewStudents"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+            
+        <ProgressBar
+            android:id="@+id/progressBarStudents"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+            
+    </FrameLayout>
 
 </LinearLayout>

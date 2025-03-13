@@ -84,7 +84,8 @@ class CourseAdapter(
         // Add click listener to the entire item view to navigate to CourseDetailActivity
         holder.itemView.setOnClickListener {
             val intent = Intent(context, CourseDetailActivity::class.java)
-            intent.putExtra(CourseListActivity.EXTRA_COURSE, currentCourse)
+            intent.putExtra(CourseListActivity.EXTRA_COURSE_ID, currentCourse.id)
+            intent.putExtra(CourseListActivity.EXTRA_COURSE_NAME, currentCourse.name)
             context.startActivity(intent)
         }
     }

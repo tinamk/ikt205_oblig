@@ -24,6 +24,11 @@ class AddEditCourseActivity : AppCompatActivity() {
     private var courseId = ""
     private var existingGrades = mutableListOf<String>()
     private var existingAverageGrade = "N/A"
+    
+    companion object {
+        const val RESULT_COURSE_ADDED = 100
+        const val RESULT_COURSE_UPDATED = 101
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,6 +95,7 @@ class AddEditCourseActivity : AppCompatActivity() {
                 .update(updatedCourse.toMap())
                 .addOnSuccessListener {
                     Toast.makeText(this, "Course updated successfully", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_COURSE_UPDATED)
                     finish()
                 }
                 .addOnFailureListener { e ->
@@ -106,10 +112,16 @@ class AddEditCourseActivity : AppCompatActivity() {
                 updatedAt = Timestamp.now()
             )
 
-            val resultIntent = Intent()
-            resultIntent.putExtra("NEW_COURSE", newCourse)
-            setResult(Activity.RESULT_OK, resultIntent)
-            finish()
+            FirebaseUtil.getCoursesCollection()
+                .add(newCourse.toMap())
+                .addOnSuccessListener { documentRef ->
+                    Toast.makeText(this, "Course added successfully", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_COURSE_ADDED)
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Error adding course: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 }
