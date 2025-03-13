@@ -63,40 +63,17 @@ class CourseListActivity : AppCompatActivity() {
         editTextSearch = findViewById(R.id.editTextSearchCourse)
         progressBar = findViewById(R.id.progressBarCourses)
         
-        // NYTT: Lag en svært enkel adapter direkte her i stedet for å bruke CourseAdapter
-        val simpleAdapter = object : RecyclerView.Adapter<SimpleViewHolder>() {
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SimpleViewHolder {
-                val view = LayoutInflater.from(parent.context)
-                    .inflate(android.R.layout.simple_list_item_1, parent, false)
-                return SimpleViewHolder(view)
-            }
-
-            override fun onBindViewHolder(holder: SimpleViewHolder, position: Int) {
-                val course = courseList[position]
-                holder.textView.text = "${course.name} (${course.code})"
-            }
-
-            override fun getItemCount(): Int = courseList.size
-        }
-        
-        recyclerView.adapter = simpleAdapter
-        
-        android.util.Log.d("CourseListActivity", "Satt opp enkel adapter")
-
-        // Test for å sjekke om det kan vises noe i RecyclerView - legg til en testkurs
-        val testCourse = Course(
-            id = "test_id",
-            name = "Test Course",
-            code = "TEST101",
-            instructor = "Test Instructor",
-            studentsEnrolled = 10
+        // Initialiser CourseAdapter med knappefunksjoner
+        courseAdapter = CourseAdapter(
+            courseList,
+            ::editCourse,
+            ::deleteCourse,
+            ::addCourse,
+            ::gradeCourse
         )
+        recyclerView.adapter = courseAdapter
         
-        courseList.clear()
-        courseList.add(testCourse)
-        
-        simpleAdapter.notifyDataSetChanged()
-        android.util.Log.d("CourseListActivity", "La til testkurs og oppdaterte adapter")
+        android.util.Log.d("CourseListActivity", "RecyclerView adapter er satt")
         
         // Set up add course button click listener
         btnAddNewCourse.setOnClickListener {
@@ -107,55 +84,8 @@ class CourseListActivity : AppCompatActivity() {
         // Set up search functionality
         setupSearch()
         
-        // Test med litt forsinkelse før vi laster fra Firebase
-        android.os.Handler().postDelayed({
-            // Load courses from Firebase when the activity is created
-            fetchCoursesFromFirestoreSimple(simpleAdapter)
-        }, 500)
-    }
-    
-    // Enkel ViewHolder for testing
-    class SimpleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val textView: TextView = itemView.findViewById(android.R.id.text1)
-    }
-    
-    // Enkel versjon av fetch-metoden
-    private fun fetchCoursesFromFirestoreSimple(adapter: RecyclerView.Adapter<SimpleViewHolder>) {
-        progressBar.visibility = View.VISIBLE
-        
-        // Log that we are starting to fetch courses
-        val tag = "CourseListActivity"
-        android.util.Log.d(tag, "Starting simplified fetch from Firestore")
-        
-        FirebaseUtil.getCoursesCollection()
-            .get()
-            .addOnSuccessListener { documents ->
-                android.util.Log.d(tag, "Got ${documents.size()} courses from Firestore")
-                
-                courseList.clear()
-                
-                for (document in documents) {
-                    android.util.Log.d(tag, "Processing course document: ${document.id}")
-                    try {
-                        val course = document.toObject(Course::class.java).apply {
-                            id = document.id
-                        }
-                        courseList.add(course)
-                        android.util.Log.d(tag, "Added course to list: ${course.name}")
-                    } catch (e: Exception) {
-                        android.util.Log.e(tag, "Error converting document to Course: ${e.message}")
-                    }
-                }
-                
-                android.util.Log.d(tag, "Finished processing ${courseList.size} courses, updating adapter")
-                adapter.notifyDataSetChanged()
-                progressBar.visibility = View.GONE
-            }
-            .addOnFailureListener { e ->
-                android.util.Log.e(tag, "Error fetching courses: ${e.message}")
-                progressBar.visibility = View.GONE
-                Toast.makeText(this, getString(R.string.error_fetching_courses, e.message), Toast.LENGTH_SHORT).show()
-            }
+        // Load courses from Firebase
+        fetchCoursesFromFirestore()
     }
     
     private fun setupSearch() {
@@ -363,9 +293,16 @@ class CourseListActivity : AppCompatActivity() {
      * Opens the AddEditCourseActivity with the course's data
      */
     private fun editCourse(course: Course) {
-        val intent = Intent(this, AddEditCourseActivity::class.java)
-        intent.putExtra(EXTRA_COURSE, course)
-        startActivityForResult(intent, REQUEST_EDIT_COURSE)
+        // Legg til logginfo
+        android.util.Log.d("CourseListActivity", "editCourse ble kalt for kurs: ${course.name} (${course.id})")
+        try {
+            val intent = Intent(this, AddEditCourseActivity::class.java)
+            intent.putExtra(EXTRA_COURSE, course)
+            startActivityForResult(intent, REQUEST_EDIT_COURSE)
+        } catch (e: Exception) {
+            android.util.Log.e("CourseListActivity", "Feil ved oppstart av AddEditCourseActivity: ${e.message}")
+            Toast.makeText(this, "Kunne ikke åpne redigeringsvindu: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     /**
@@ -373,6 +310,9 @@ class CourseListActivity : AppCompatActivity() {
      * Shows a confirmation dialog before deleting
      */
     private fun deleteCourse(course: Course) {
+        // Legg til logginfo
+        android.util.Log.d("CourseListActivity", "deleteCourse ble kalt for kurs: ${course.name} (${course.id})")
+        
         // Show confirmation dialog using AlertDialog
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.delete_course))
@@ -450,6 +390,9 @@ class CourseListActivity : AppCompatActivity() {
      * Opens the AddEditCourseActivity to create a new course
      */
     private fun addCourse(course: Course) {
+        // Legg til logginfo
+        android.util.Log.d("CourseListActivity", "addCourse ble kalt")
+        
         val intent = Intent(this, AddEditCourseActivity::class.java)
         startActivityForResult(intent, REQUEST_ADD_COURSE)
     }
@@ -459,6 +402,9 @@ class CourseListActivity : AppCompatActivity() {
      * Opens the AddGradeActivity with the course's ID and name
      */
     private fun gradeCourse(course: Course) {
+        // Legg til logginfo
+        android.util.Log.d("CourseListActivity", "gradeCourse ble kalt for kurs: ${course.name} (${course.id})")
+        
         val intent = Intent(this, AddGradeActivity::class.java)
         intent.putExtra(EXTRA_COURSE_ID, course.id)
         intent.putExtra(EXTRA_COURSE_NAME, course.name)

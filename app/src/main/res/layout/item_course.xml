@@ -45,33 +45,45 @@
         android:orientation="horizontal"
         android:layout_marginTop="8dp">
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_edit_course"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_edit" />
+            android:text="Edit"
+            android:drawableTop="@drawable/ic_edit"
+            android:textSize="10sp"
+            android:layout_margin="2dp" />
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_delete_course"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_delete" />
+            android:text="Delete"
+            android:drawableTop="@drawable/ic_delete"
+            android:textSize="10sp"
+            android:layout_margin="2dp" />
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_add_course"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_add" />
+            android:text="Add"
+            android:drawableTop="@drawable/ic_add"
+            android:textSize="10sp"
+            android:layout_margin="2dp" />
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_grade_course"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_grade" />
+            android:text="Grade"
+            android:drawableTop="@drawable/ic_grade"
+            android:textSize="10sp"
+            android:layout_margin="2dp" />
     </LinearLayout>
 
 </LinearLayout>

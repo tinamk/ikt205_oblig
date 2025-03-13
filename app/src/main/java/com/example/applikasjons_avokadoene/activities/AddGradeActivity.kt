@@ -88,7 +88,44 @@ class AddGradeActivity : AppCompatActivity() {
                     buttonSaveGrade.isEnabled = false
                 } else {
                     editTextGrade.error = null
-                    buttonSaveGrade.isEnabled = true
+                    updateSaveButtonState()  // Oppdater save-knappen basert på alle felter
+                }
+            }
+        })
+        
+        // Add text watchers to detect manual changes to student and course fields
+        editTextStudentId.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                // If user manually edited this field and it's not empty
+                if (editTextStudentId.isEnabled && !s.isNullOrEmpty()) {
+                    val studentNameText = s.toString().trim()
+                    val matchingStudent = studentList.find { it.name.equals(studentNameText, ignoreCase = true) }
+                    if (matchingStudent != null) {
+                        studentId = matchingStudent.id
+                        studentName = matchingStudent.name
+                        android.util.Log.d("AddGradeActivity", "Found student match by text: ${matchingStudent.name}")
+                        updateSaveButtonState()
+                    }
+                }
+            }
+        })
+        
+        editTextCourseCode.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                // If user manually edited this field and it's not empty
+                if (editTextCourseCode.isEnabled && !s.isNullOrEmpty()) {
+                    val courseNameText = s.toString().trim()
+                    val matchingCourse = courseList.find { it.name.equals(courseNameText, ignoreCase = true) }
+                    if (matchingCourse != null) {
+                        courseId = matchingCourse.id
+                        courseName = matchingCourse.name
+                        android.util.Log.d("AddGradeActivity", "Found course match by text: ${matchingCourse.name}")
+                        updateSaveButtonState()
+                    }
                 }
             }
         })
@@ -105,6 +142,11 @@ class AddGradeActivity : AppCompatActivity() {
                 editTextStudentId.isEnabled = false
                 spinnerStudents.visibility = View.GONE
                 buttonSelectStudent.visibility = View.GONE
+                
+                android.util.Log.d("AddGradeActivity", "Student selected: ${selectedStudent.name} (${selectedStudent.id})")
+                
+                // Sjekk om vi også har valgt kurs, og aktiver save-knappen hvis begge er valgt
+                updateSaveButtonState()
             }
         }
         
@@ -119,6 +161,11 @@ class AddGradeActivity : AppCompatActivity() {
                 editTextCourseCode.isEnabled = false
                 spinnerCourses.visibility = View.GONE
                 buttonSelectCourse.visibility = View.GONE
+                
+                android.util.Log.d("AddGradeActivity", "Course selected: ${selectedCourse.name} (${selectedCourse.id})")
+                
+                // Sjekk om vi også har valgt student, og aktiver save-knappen hvis begge er valgt
+                updateSaveButtonState()
             }
         }
 
@@ -223,15 +270,50 @@ class AddGradeActivity : AppCompatActivity() {
     private fun saveGrade() {
         val gradeText = editTextGrade.text.toString().trim().uppercase()
         
+        // Logging for debugging
+        android.util.Log.d("AddGradeActivity", "saveGrade called with studentId=$studentId, courseId=$courseId, grade=$gradeText")
+        android.util.Log.d("AddGradeActivity", "studentName=$studentName, courseName=$courseName")
+        android.util.Log.d("AddGradeActivity", "editTextStudentId.text=${editTextStudentId.text}")
+        android.util.Log.d("AddGradeActivity", "editTextCourseCode.text=${editTextCourseCode.text}")
+        
         // Validate grade
         if (gradeText.isEmpty() || !gradeText.matches(Regex("[A-F]"))) {
             Toast.makeText(this, getString(R.string.error_invalid_grade), Toast.LENGTH_SHORT).show()
             return
         }
         
+        // Check if student field has text but studentId is null
+        if (studentId == null && editTextStudentId.text.isNotEmpty()) {
+            // Try to find student by name
+            val studentNameText = editTextStudentId.text.toString().trim()
+            android.util.Log.d("AddGradeActivity", "Looking for student with name: $studentNameText")
+            
+            val matchingStudent = studentList.find { it.name.equals(studentNameText, ignoreCase = true) }
+            if (matchingStudent != null) {
+                studentId = matchingStudent.id
+                studentName = matchingStudent.name
+                android.util.Log.d("AddGradeActivity", "Found matching student: ${matchingStudent.name} (${matchingStudent.id})")
+            }
+        }
+        
+        // Check if course field has text but courseId is null
+        if (courseId == null && editTextCourseCode.text.isNotEmpty()) {
+            // Try to find course by name
+            val courseNameText = editTextCourseCode.text.toString().trim()
+            android.util.Log.d("AddGradeActivity", "Looking for course with name: $courseNameText")
+            
+            val matchingCourse = courseList.find { it.name.equals(courseNameText, ignoreCase = true) }
+            if (matchingCourse != null) {
+                courseId = matchingCourse.id
+                courseName = matchingCourse.name
+                android.util.Log.d("AddGradeActivity", "Found matching course: ${matchingCourse.name} (${matchingCourse.id})")
+            }
+        }
+        
         // Check if we have student and course
         if (studentId == null || courseId == null) {
             Toast.makeText(this, getString(R.string.error_select_student_course), Toast.LENGTH_SHORT).show()
+            android.util.Log.e("AddGradeActivity", "Missing studentId or courseId: studentId=$studentId, courseId=$courseId")
             return
         }
         
@@ -345,5 +427,14 @@ class AddGradeActivity : AppCompatActivity() {
             "F" -> 0.0
             else -> 0.0
         }
+    }
+
+    // Helper method to update save button state
+    private fun updateSaveButtonState() {
+        // Enable save button if both student and course are selected
+        val hasStudentAndCourse = studentId != null && courseId != null
+        val hasValidGrade = editTextGrade.text.toString().trim().matches(Regex("[A-F]"))
+        
+        buttonSaveGrade.isEnabled = hasStudentAndCourse && hasValidGrade
     }
 }
