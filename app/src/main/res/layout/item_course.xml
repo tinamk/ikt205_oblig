@@ -3,86 +3,95 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="12dp"
-    android:background="@android:color/white"
-    android:elevation="2dp">
+    android:padding="16dp"
+    android:background="#EEEEEE"
+    android:layout_margin="4dp">
 
     <TextView
         android:id="@+id/textCourseName"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Course Name"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black" />
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/textCourseCode"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Code: COURSE101"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="14sp" />
+        android:text="Code: COURSE101" />
 
     <TextView
         android:id="@+id/textInstructorName"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Instructor: Dr. Example"
-        android:textColor="@android:color/black"
-        android:textSize="14sp" />
-        
+        android:text="Instructor: Dr. Example" />
+
     <TextView
         android:id="@+id/textStudentCount"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Students: 30"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="14sp" />
-        
+        android:text="Students: 30" />
+    
     <TextView
         android:id="@+id/textAverageGrade"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Average Grade: N/A"
-        android:textColor="@android:color/black"
-        android:textSize="14sp"
-        android:layout_marginBottom="8dp" />
+        android:text="Average Grade: N/A" />
+
+    <!-- Add BarChart for grade distribution -->
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/gradeDistributionChart"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_edit_course"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:src="@android:drawable/ic_menu_edit"
-            android:contentDescription="Edit Course" />
+            android:layout_weight="1"
+            android:text="Edit"
+            android:drawableTop="@drawable/ic_edit"
+            android:textSize="10sp"
+            android:layout_margin="2dp" />
 
-        <ImageButton
+        <Button
             android:id="@+id/btn_delete_course"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:src="@android:drawable/ic_menu_delete"
-            android:contentDescription="Delete Course" />
-            
-        <ImageButton
+            android:layout_weight="1"
+            android:text="Delete"
+            android:drawableTop="@drawable/ic_delete"
+            android:textSize="10sp"
+            android:layout_margin="2dp" />
+
+        <Button
             android:id="@+id/btn_add_course"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:src="@android:drawable/ic_menu_add"
-            android:contentDescription="Add Student to Course" />
-            
-        <ImageButton
+            android:layout_weight="1"
+            android:text="Add"
+            android:drawableTop="@drawable/ic_add"
+            android:textSize="10sp"
+            android:layout_margin="2dp" />
+
+        <Button
             android:id="@+id/btn_grade_course"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_input_add"
-            android:contentDescription="Add Grade" />
+            android:layout_weight="1"
+            android:text="Grade"
+            android:drawableTop="@drawable/ic_grade"
+            android:textSize="10sp"
+            android:layout_margin="2dp" />
     </LinearLayout>
+
 </LinearLayout>

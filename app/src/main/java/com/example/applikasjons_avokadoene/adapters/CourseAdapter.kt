@@ -2,17 +2,23 @@ package com.example.applikasjons_avokadoene.adapters
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.applikasjons_avokadoene.R
 import com.example.applikasjons_avokadoene.activities.CourseDetailActivity
 import com.example.applikasjons_avokadoene.activities.CourseListActivity
 import com.example.applikasjons_avokadoene.models.Course
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 
 /**
  * CourseAdapter is responsible for displaying a list of courses in a RecyclerView.
@@ -44,10 +50,11 @@ class CourseAdapter(
         val textInstructorName: TextView = itemView.findViewById(R.id.textInstructorName)
         val textStudentCount: TextView = itemView.findViewById(R.id.textStudentCount)
         val textAverageGrade: TextView = itemView.findViewById(R.id.textAverageGrade)
-        val btnEditCourse: ImageButton = itemView.findViewById(R.id.btn_edit_course)
-        val btnDeleteCourse: ImageButton = itemView.findViewById(R.id.btn_delete_course)
-        val btnAddCourse: ImageButton = itemView.findViewById(R.id.btn_add_course)
-        val btnGradeCourse: ImageButton = itemView.findViewById(R.id.btn_grade_course)
+        val btnEditCourse: Button = itemView.findViewById(R.id.btn_edit_course)
+        val btnDeleteCourse: Button = itemView.findViewById(R.id.btn_delete_course)
+        val btnAddCourse: Button = itemView.findViewById(R.id.btn_add_course)
+        val btnGradeCourse: Button = itemView.findViewById(R.id.btn_grade_course)
+        val gradeDistributionChart: BarChart = itemView.findViewById(R.id.gradeDistributionChart)
     }
 
     /**
@@ -83,6 +90,9 @@ class CourseAdapter(
             holder.textInstructorName.text = context.getString(R.string.instructor_format, currentCourse.instructor)
             holder.textStudentCount.text = context.getString(R.string.students_format, currentCourse.studentsEnrolled)
             holder.textAverageGrade.text = context.getString(R.string.average_grade_format, currentCourse.averageGrade)
+
+            // Update grade distribution chart
+            updateGradeDistributionChart(holder.gradeDistributionChart, currentCourse)
     
             // Set click listeners for buttons
             holder.btnEditCourse.setOnClickListener {
@@ -123,6 +133,76 @@ class CourseAdapter(
             android.util.Log.e("CourseAdapter", "Error binding course view: ${e.message}")
             e.printStackTrace()
         }
+    }
+
+    private fun updateGradeDistributionChart(chart: BarChart, course: Course) {
+        // Grade labels
+        val gradeLabels = arrayOf("A", "B", "C", "D", "E", "F")
+        
+        // Count occurrences of each grade
+        val gradeCounts = IntArray(6) { 0 }
+        for (grade in course.grades) {
+            when (grade) {
+                "A" -> gradeCounts[0]++
+                "B" -> gradeCounts[1]++
+                "C" -> gradeCounts[2]++
+                "D" -> gradeCounts[3]++
+                "E" -> gradeCounts[4]++
+                "F" -> gradeCounts[5]++
+            }
+        }
+
+        // Create bar entries
+        val entries = ArrayList<BarEntry>()
+        for (i in gradeCounts.indices) {
+            entries.add(BarEntry(i.toFloat(), gradeCounts[i].toFloat()))
+        }
+
+        // Create dataset
+        val dataSet = BarDataSet(entries, "Grade Distribution")
+        dataSet.color = Color.rgb(54, 162, 235)
+        dataSet.valueTextColor = Color.BLACK
+        dataSet.valueTextSize = 12f
+
+        // Create bar data
+        val barData = BarData(dataSet)
+        barData.barWidth = 0.7f
+
+        // Configure chart
+        chart.apply {
+            this.data = barData
+            description.isEnabled = false
+            setDrawGridBackground(false)
+            legend.isEnabled = false
+            setDrawBarShadow(false)
+            setDrawValueAboveBar(true)
+            isHighlightFullBarEnabled = false
+            setDrawBorders(false)
+            setTouchEnabled(false)
+            setScaleEnabled(false)
+            setPinchZoom(false)
+            setDrawGridBackground(false)
+            animateY(1000)
+
+            // Configure X axis
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                valueFormatter = IndexAxisValueFormatter(gradeLabels)
+                setDrawGridLines(false)
+                axisMinimum = -0.5f
+                axisMaximum = 5.5f
+            }
+
+            // Configure Y axis
+            axisLeft.apply {
+                axisMinimum = 0f
+                setDrawGridLines(true)
+            }
+            axisRight.isEnabled = false
+        }
+
+        // Refresh chart
+        chart.invalidate()
     }
 
     /**
