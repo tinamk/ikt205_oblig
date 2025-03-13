@@ -11,4 +11,11 @@
         android:layout_height="match_parent"
         tools:listitem="@layout/item_course" />
 
+    <ProgressBar
+        android:id="@+id/progressBarCourses"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
 </FrameLayout>

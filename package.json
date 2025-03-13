@@ -1,0 +1,24 @@
+{
+  "name": "ikt205_oblig",
+  "version": "1.0.0",
+  "description": "En Android-app for administrasjon av kurs og studenter. Appen lar lærere holde oversikt over studenter, kurs og karakterer.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tinamk/ikt205_oblig.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tinamk/ikt205_oblig/issues"
+  },
+  "homepage": "https://github.com/tinamk/ikt205_oblig#readme",
+  "dependencies": {
+    "expo": "^52.0.38"
+  }
+}

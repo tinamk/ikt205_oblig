@@ -1,24 +1,36 @@
 package com.example.applikasjons_avokadoene.fragments
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.applikasjons_avokadoene.R
+import com.example.applikasjons_avokadoene.activities.AddGradeActivity
 import com.example.applikasjons_avokadoene.adapters.CourseAdapter
 import com.example.applikasjons_avokadoene.models.Course
+import com.example.applikasjons_avokadoene.models.Grade
+import com.example.applikasjons_avokadoene.utils.FirebaseUtil
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.ktx.toObject
 
 class CourseFragment : Fragment() {
 
     private lateinit var courseAdapter: CourseAdapter
     private lateinit var recyclerView: RecyclerView
     private val courseList: MutableList<Course> = mutableListOf()
+    private lateinit var progressBar: ProgressBar
+
+    companion object {
+        const val REQUEST_ADD_GRADE = 3
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -26,13 +38,20 @@ class CourseFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_course, container, false)
         recyclerView = view.findViewById(R.id.recyclerViewCourses)
+        progressBar = view.findViewById(R.id.progressBarCourses)
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        addDummyCourses()
+        loadCoursesFromFirebase()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh data when returning to the fragment
+        loadCoursesFromFirebase()
     }
 
     private fun setupRecyclerView() {
@@ -53,6 +72,30 @@ class CourseFragment : Fragment() {
         )
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = courseAdapter
+    }
+
+    private fun loadCoursesFromFirebase() {
+        progressBar.visibility = View.VISIBLE
+        
+        FirebaseUtil.getCoursesCollection()
+            .get()
+            .addOnSuccessListener { documents ->
+                courseList.clear()
+                
+                for (document in documents) {
+                    val course = document.toObject<Course>().apply {
+                        id = document.id // Assign Firestore document ID
+                    }
+                    courseList.add(course)
+                }
+                
+                courseAdapter.updateCourseList(courseList)
+                progressBar.visibility = View.GONE
+            }
+            .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
+                Toast.makeText(context, getString(R.string.error_fetching_courses, e.message), Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun showEditCourseDialog(course: Course) {
@@ -76,19 +119,7 @@ class CourseFragment : Fragment() {
                 val newInstructor = editInstructor.text.toString()
                 val newStudentsEnrolled = editStudentsEnrolled.text.toString().toIntOrNull() ?: 0
 
-                val index = courseList.indexOf(course)
-                if (index != -1) {
-                    courseList[index] = Course(
-                        id = course.id,
-                        name = newName,
-                        code = newCode,
-                        instructor = newInstructor,
-                        studentsEnrolled = newStudentsEnrolled,
-                        grades = course.grades,
-                        averageGrade = course.averageGrade
-                    )
-                    courseAdapter.updateCourseList(courseList)
-                }
+                updateCourseInFirebase(course, newName, newCode, newInstructor, newStudentsEnrolled)
             }
             .setNegativeButton(getString(R.string.cancel)) { dialog, which ->
                 dialog.dismiss()
@@ -96,12 +127,79 @@ class CourseFragment : Fragment() {
             .show()
     }
 
+    private fun updateCourseInFirebase(course: Course, newName: String, newCode: String, newInstructor: String, newStudentsEnrolled: Int) {
+        progressBar.visibility = View.VISIBLE
+        
+        val updatedCourse = Course(
+            id = course.id,
+            name = newName,
+            code = newCode,
+            instructor = newInstructor,
+            studentsEnrolled = newStudentsEnrolled,
+            updatedAt = Timestamp.now()
+        )
+
+        FirebaseUtil.getCoursesCollection().document(course.id)
+            .update(updatedCourse.toMap())
+            .addOnSuccessListener {
+                Toast.makeText(context, "Course updated successfully", Toast.LENGTH_SHORT).show()
+                loadCoursesFromFirebase()  // Reload the courses after update
+            }
+            .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
+                Toast.makeText(context, "Error updating course: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
     private fun deleteCourse(course: Course) {
-        val index = courseList.indexOf(course)
-        if (index != -1) {
-            courseList.removeAt(index)
-            courseAdapter.updateCourseList(courseList)
-        }
+        AlertDialog.Builder(context)
+            .setTitle(getString(R.string.delete_course))
+            .setMessage(getString(R.string.confirm_delete_course, course.name))
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
+                deleteCourseFromFirebase(course)
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun deleteCourseFromFirebase(course: Course) {
+        progressBar.visibility = View.VISIBLE
+        
+        // First delete all grades for this course
+        FirebaseUtil.getGradesCollection()
+            .whereEqualTo("courseId", course.id)
+            .get()
+            .addOnSuccessListener { gradeDocuments ->
+                // Create a batch to delete all grades at once
+                val batch = FirebaseUtil.db.batch()
+                for (gradeDoc in gradeDocuments) {
+                    batch.delete(gradeDoc.reference)
+                }
+                
+                // Execute the batch delete
+                batch.commit()
+                    .addOnSuccessListener {
+                        // Now delete the course
+                        FirebaseUtil.getCoursesCollection().document(course.id)
+                            .delete()
+                            .addOnSuccessListener {
+                                Toast.makeText(context, getString(R.string.course_and_grades_deleted), Toast.LENGTH_SHORT).show()
+                                loadCoursesFromFirebase()  // Reload the data
+                            }
+                            .addOnFailureListener { e ->
+                                progressBar.visibility = View.GONE
+                                Toast.makeText(context, getString(R.string.error_deleting_course, e.message), Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                    .addOnFailureListener { e ->
+                        progressBar.visibility = View.GONE
+                        Toast.makeText(context, getString(R.string.error_deleting_grades, e.message), Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
+                Toast.makeText(context, getString(R.string.error_finding_grades, e.message), Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun addCourse(course: Course) {
@@ -120,14 +218,7 @@ class CourseFragment : Fragment() {
                 val newInstructor = addInstructor.text.toString()
                 val newStudentsEnrolled = addStudentsEnrolled.text.toString().toIntOrNull() ?: 0
 
-                val newCourse = Course(
-                    name = newName,
-                    code = newCode,
-                    instructor = newInstructor,
-                    studentsEnrolled = newStudentsEnrolled
-                )
-                courseList.add(newCourse)
-                courseAdapter.updateCourseList(courseList)
+                addCourseToFirebase(newName, newCode, newInstructor, newStudentsEnrolled)
             }
             .setNegativeButton(getString(R.string.cancel)) { dialog, which ->
                 dialog.dismiss()
@@ -135,75 +226,65 @@ class CourseFragment : Fragment() {
             .show()
     }
 
-    private fun showGradeDialog(course: Course) {
-        val builder = AlertDialog.Builder(context)
-        val inflater = layoutInflater
-        val dialogLayout = inflater.inflate(R.layout.dialog_grade_course, null)
-        
-        // UI elements
-        val textViewSelectedGrade = dialogLayout.findViewById<android.widget.TextView>(R.id.textViewSelectedGrade)
-        
-        // Get references to all grade buttons
-        val btnGradeA = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeA)
-        val btnGradeB = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeB)
-        val btnGradeC = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeC)
-        val btnGradeD = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeD)
-        val btnGradeE = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeE)
-        val btnGradeF = dialogLayout.findViewById<android.widget.Button>(R.id.btnGradeF)
-        
-        // Variable to store the selected grade
-        var selectedGrade: String? = null
-        
-        // Create the dialog with null listeners for buttons
-        val dialog = builder.setView(dialogLayout)
-            .setPositiveButton(getString(R.string.save), null)
-            .setNegativeButton(getString(R.string.cancel), null)
-            .create()
-        
-        // Helper function to update selected grade
-        val setSelectedGrade = { grade: String ->
-            selectedGrade = grade
-            textViewSelectedGrade.text = getString(R.string.selected_grade_format, grade)
-            
-            // Update button appearance for selected state
-            val buttons = listOf(btnGradeA, btnGradeB, btnGradeC, btnGradeD, btnGradeE, btnGradeF)
-            buttons.forEach { button ->
-                button.alpha = if (button.text.toString() == grade) 1.0f else 0.6f
-            }
+    private fun addCourseToFirebase(name: String, code: String, instructor: String, studentsEnrolled: Int) {
+        if (name.isEmpty() || code.isEmpty() || instructor.isEmpty()) {
+            Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            return
         }
+
+        progressBar.visibility = View.VISIBLE
         
-        // Set click listeners for each grade button
-        btnGradeA.setOnClickListener { setSelectedGrade(getString(R.string.grade_a)) }
-        btnGradeB.setOnClickListener { setSelectedGrade(getString(R.string.grade_b)) }
-        btnGradeC.setOnClickListener { setSelectedGrade(getString(R.string.grade_c)) }
-        btnGradeD.setOnClickListener { setSelectedGrade(getString(R.string.grade_d)) }
-        btnGradeE.setOnClickListener { setSelectedGrade(getString(R.string.grade_e)) }
-        btnGradeF.setOnClickListener { setSelectedGrade(getString(R.string.grade_f)) }
-        
-        // Show the dialog
-        dialog.show()
-        
-        // Set up the positive button click listener after dialog is shown
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            if (selectedGrade != null) {
-                // Add the grade and update the UI
-                course.grades.add(selectedGrade!!)
-                course.calculateAverageGrade()
-                courseAdapter.updateCourseList(courseList)
-                dialog.dismiss()
-            } else {
-                // Prompt user to select a grade
-                Toast.makeText(context, getString(R.string.error_invalid_grade), Toast.LENGTH_SHORT).show()
+        val newCourse = Course(
+            name = name,
+            code = code,
+            instructor = instructor,
+            studentsEnrolled = studentsEnrolled,
+            createdAt = Timestamp.now(),
+            updatedAt = Timestamp.now()
+        )
+
+        FirebaseUtil.getCoursesCollection()
+            .add(newCourse.toMap())
+            .addOnSuccessListener {
+                Toast.makeText(context, getString(R.string.course_added_success), Toast.LENGTH_SHORT).show()
+                loadCoursesFromFirebase()  // Reload data after adding
             }
-        }
+            .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
+                Toast.makeText(context, getString(R.string.failed_to_add_course, e.message), Toast.LENGTH_SHORT).show()
+            }
     }
 
-    private fun addDummyCourses() {
-        courseList.add(Course(name = "Mathematics", code = "MATH101", instructor = "Dr. Smith", studentsEnrolled = 30))
-        courseList.add(Course(name = "Physics", code = "PHYS201", instructor = "Prof. Johnson", studentsEnrolled = 25))
-        courseList.add(Course(name = "Chemistry", code = "CHEM101", instructor = "Dr. Williams", studentsEnrolled = 35))
-        courseList.add(Course(name = "Biology", code = "BIO101", instructor = "Prof. Davis", studentsEnrolled = 40))
-        courseList.add(Course(name = "Computer Science", code = "CS101", instructor = "Dr. Brown", studentsEnrolled = 50))
-        courseAdapter.updateCourseList(courseList)
+    private fun showGradeDialog(course: Course) {
+        // Launch the proper AddGradeActivity instead of using the dialog with dummy data
+        val intent = Intent(requireActivity(), AddGradeActivity::class.java)
+        intent.putExtra("COURSE_ID", course.id)
+        intent.putExtra("COURSE_NAME", course.name)
+        startActivityForResult(intent, REQUEST_ADD_GRADE)
+    }
+    
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        if (requestCode == REQUEST_ADD_GRADE) {
+            if (resultCode == AddGradeActivity.RESULT_GRADE_ADDED || 
+                resultCode == AddGradeActivity.RESULT_GRADE_UPDATED) {
+                // Refresh the list after a grade is added or updated
+                loadCoursesFromFirebase()
+                
+                // Show confirmation message
+                val studentName = data?.getStringExtra("STUDENT_NAME") ?: "Student"
+                val courseName = data?.getStringExtra("COURSE_NAME") ?: "course"
+                val gradeLetter = data?.getStringExtra("GRADE_LETTER") ?: ""
+                
+                val message = if (resultCode == AddGradeActivity.RESULT_GRADE_ADDED) {
+                    getString(R.string.added_grade_format, gradeLetter, studentName, courseName)
+                } else {
+                    getString(R.string.updated_grade_format, gradeLetter, studentName, courseName)
+                }
+                
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
