@@ -28,6 +28,8 @@
     <!-- Grade related strings -->
     <string name="add_grade">Add Grade</string>
     <string name="select_grade">Select a grade (A-F)</string>
+    <string name="select_student">Select Student</string>
+    <string name="select_course">Select Course</string>
     <string name="save">Save</string>
     <string name="selected_grade_none">Selected Grade: None</string>
     <string name="selected_grade_format">Selected Grade: %1$s</string>

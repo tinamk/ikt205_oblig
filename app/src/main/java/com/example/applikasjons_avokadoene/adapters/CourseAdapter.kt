@@ -100,8 +100,16 @@ class CourseAdapter(
      * This is called when the data changes (e.g., after adding, editing, or deleting a course)
      */
     fun updateCourseList(newList: List<Course>) {
+        android.util.Log.d("CourseAdapter", "Updating course list with ${newList.size} courses")
         courseList.clear()  // Clear the existing list
         courseList.addAll(newList)  // Add all items from the new list
+        android.util.Log.d("CourseAdapter", "Course list after update: ${courseList.size} courses")
+        
+        for (course in courseList) {
+            android.util.Log.d("CourseAdapter", "Course in list: ${course.name} (${course.id})")
+        }
+        
         notifyDataSetChanged()  // Tell the RecyclerView to refresh its display
+        android.util.Log.d("CourseAdapter", "Called notifyDataSetChanged")
     }
 }

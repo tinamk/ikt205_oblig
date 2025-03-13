@@ -8,35 +8,105 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Grade"
+        android:text="@string/add_grade"
         android:textSize="20sp"
         android:textStyle="bold"
         android:paddingBottom="8dp"/>
 
+    <!-- Student selection section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/select_student"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"/>
+        
     <EditText
         android:id="@+id/editTextStudentId"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Student ID"
-        android:inputType="number"/>
+        android:hint="@string/select_student"
+        android:enabled="false"
+        android:layout_marginBottom="8dp" />
+        
+    <Spinner
+        android:id="@+id/spinnerStudents"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone" />
+        
+    <Button
+        android:id="@+id/buttonSelectStudent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/select_student"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" />
 
+    <!-- Course selection section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/select_course"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"/>
+        
     <EditText
         android:id="@+id/editTextCourseCode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Course Code"/>
+        android:hint="@string/select_course"
+        android:enabled="false"
+        android:layout_marginBottom="8dp"/>
+        
+    <Spinner
+        android:id="@+id/spinnerCourses"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone" />
+        
+    <Button
+        android:id="@+id/buttonSelectCourse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/select_course"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" />
 
+    <!-- Grade selection section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/select_grade"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"/>
+        
     <EditText
         android:id="@+id/editTextGrade"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Grade"
-        android:inputType="text"/>
+        android:hint="@string/select_grade"
+        android:inputType="textCapCharacters"
+        android:maxLength="1"
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/buttonSaveGrade"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Save Grade" />
+        android:text="@string/save" />
+        
+    <ProgressBar
+        android:id="@+id/progressBarAddGrade"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
 
 </LinearLayout>

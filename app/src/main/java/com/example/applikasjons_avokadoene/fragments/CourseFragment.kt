@@ -77,25 +77,103 @@ class CourseFragment : Fragment() {
     private fun loadCoursesFromFirebase() {
         progressBar.visibility = View.VISIBLE
         
+        val tag = "CourseFragment"
+        android.util.Log.d(tag, "Starting to fetch courses from Firestore")
+        
         FirebaseUtil.getCoursesCollection()
             .get()
             .addOnSuccessListener { documents ->
+                android.util.Log.d(tag, "Got ${documents.size()} courses from Firestore")
                 courseList.clear()
                 
+                // Load all courses immediately
                 for (document in documents) {
-                    val course = document.toObject<Course>().apply {
-                        id = document.id // Assign Firestore document ID
+                    try {
+                        val course = document.toObject<Course>().apply {
+                            id = document.id // Assign Firestore document ID
+                        }
+                        courseList.add(course)
+                        android.util.Log.d(tag, "Added course to courseList: ${course.name}")
+                    } catch (e: Exception) {
+                        android.util.Log.e(tag, "Error converting document to Course: ${e.message}")
                     }
-                    courseList.add(course)
                 }
                 
+                // Update UI immediately with courses (without grades yet)
                 courseAdapter.updateCourseList(courseList)
-                progressBar.visibility = View.GONE
+                android.util.Log.d(tag, "Updated UI with ${courseList.size} courses (before loading grades)")
+                
+                // Then load grades for each course
+                loadGradesForCourses()
             }
             .addOnFailureListener { e ->
                 progressBar.visibility = View.GONE
                 Toast.makeText(context, getString(R.string.error_fetching_courses, e.message), Toast.LENGTH_SHORT).show()
             }
+    }
+    
+    private fun loadGradesForCourses() {
+        val tag = "CourseFragment"
+        
+        if (courseList.isEmpty()) {
+            progressBar.visibility = View.GONE
+            return
+        }
+        
+        // Keep track of processed courses
+        var processedCourses = 0
+        
+        // Load grades for each course
+        for (course in courseList) {
+            android.util.Log.d(tag, "Loading grades for course: ${course.name} (${course.id})")
+            
+            FirebaseUtil.getGradesCollection()
+                .whereEqualTo("courseId", course.id)
+                .get()
+                .addOnSuccessListener { gradeDocuments ->
+                    android.util.Log.d(tag, "Found ${gradeDocuments.size()} grades for course ${course.name}")
+                    
+                    // Process grades
+                    course.grades.clear() // Clear existing grades
+                    for (gradeDoc in gradeDocuments) {
+                        val grade = gradeDoc.getString("grade") ?: ""
+                        if (grade.isNotEmpty()) {
+                            course.grades.add(grade)
+                            android.util.Log.d(tag, "Added grade $grade to course ${course.name}")
+                        }
+                    }
+                    
+                    // Calculate average grade
+                    course.calculateAverageGrade()
+                    android.util.Log.d(tag, "Calculated average grade for ${course.name}: ${course.averageGrade}")
+                    
+                    // Increment processed counter
+                    processedCourses++
+                    android.util.Log.d(tag, "Processed $processedCourses/${courseList.size} courses")
+                    
+                    // If all courses processed, update UI again with grade information
+                    if (processedCourses >= courseList.size) {
+                        android.util.Log.d(tag, "All course grades processed, updating UI")
+                        courseAdapter.updateCourseList(courseList)
+                        progressBar.visibility = View.GONE
+                    }
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e(tag, "Error fetching grades for course ${course.name}: ${e.message}")
+                    
+                    // Count this course as processed even on failure
+                    processedCourses++
+                    android.util.Log.d(tag, "Processed (after error) $processedCourses/${courseList.size} courses")
+                    
+                    // If all courses processed, update UI
+                    if (processedCourses >= courseList.size) {
+                        android.util.Log.d(tag, "All course grades processed (some with errors), updating UI")
+                        progressBar.visibility = View.GONE
+                    }
+                    
+                    Toast.makeText(context, "Error fetching grades: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
     }
 
     private fun showEditCourseDialog(course: Course) {

@@ -3,13 +3,13 @@ package com.example.applikasjons_avokadoene.activities
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.Toast
+import android.view.View
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.applikasjons_avokadoene.R
+import com.example.applikasjons_avokadoene.models.Course
 import com.example.applikasjons_avokadoene.models.Grade
+import com.example.applikasjons_avokadoene.models.Student
 import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ktx.toObject
@@ -17,14 +17,22 @@ import com.google.firebase.firestore.ktx.toObject
 class AddGradeActivity : AppCompatActivity() {
 
     private lateinit var editTextStudentId: EditText
+    private lateinit var spinnerStudents: Spinner
+    private lateinit var buttonSelectStudent: Button
     private lateinit var editTextCourseCode: EditText
+    private lateinit var spinnerCourses: Spinner
+    private lateinit var buttonSelectCourse: Button
     private lateinit var editTextGrade: EditText
     private lateinit var buttonSaveGrade: Button
+    private lateinit var progressBar: ProgressBar
     
     private var studentId: String? = null
     private var studentName: String? = null
     private var courseId: String? = null
     private var courseName: String? = null
+    
+    private val studentList = mutableListOf<Student>()
+    private val courseList = mutableListOf<Course>()
     
     companion object {
         const val RESULT_GRADE_ADDED = 100
@@ -39,9 +47,14 @@ class AddGradeActivity : AppCompatActivity() {
 
         // Initialize views
         editTextStudentId = findViewById(R.id.editTextStudentId)
+        spinnerStudents = findViewById(R.id.spinnerStudents)
+        buttonSelectStudent = findViewById(R.id.buttonSelectStudent)
         editTextCourseCode = findViewById(R.id.editTextCourseCode)
+        spinnerCourses = findViewById(R.id.spinnerCourses)
+        buttonSelectCourse = findViewById(R.id.buttonSelectCourse)
         editTextGrade = findViewById(R.id.editTextGrade)
         buttonSaveGrade = findViewById(R.id.buttonSaveGrade)
+        progressBar = findViewById(R.id.progressBarAddGrade)
 
         // Get data from intent
         studentId = intent.getStringExtra("STUDENT_ID")
@@ -49,15 +62,17 @@ class AddGradeActivity : AppCompatActivity() {
         courseId = intent.getStringExtra("COURSE_ID")
         courseName = intent.getStringExtra("COURSE_NAME")
         
-        // Pre-fill fields if data is available
-        if (studentId != null && studentName != null) {
-            editTextStudentId.setText(studentName)
-            editTextStudentId.isEnabled = false
+        // Load data based on what's available
+        setupUIForSelection()
+        
+        // Load students if needed
+        if (studentId == null) {
+            loadStudents()
         }
         
-        if (courseId != null && courseName != null) {
-            editTextCourseCode.setText(courseName)
-            editTextCourseCode.isEnabled = false
+        // Load courses if needed
+        if (courseId == null) {
+            loadCourses()
         }
         
         // Add text watcher to validate grade input
@@ -78,10 +93,131 @@ class AddGradeActivity : AppCompatActivity() {
             }
         })
 
+        // Set up selection buttons
+        buttonSelectStudent.setOnClickListener {
+            if (spinnerStudents.selectedItemPosition >= 0 && spinnerStudents.selectedItemPosition < studentList.size) {
+                val selectedStudent = studentList[spinnerStudents.selectedItemPosition]
+                studentId = selectedStudent.id
+                studentName = selectedStudent.name
+                
+                // Update UI to show selected student
+                editTextStudentId.setText(selectedStudent.name)
+                editTextStudentId.isEnabled = false
+                spinnerStudents.visibility = View.GONE
+                buttonSelectStudent.visibility = View.GONE
+            }
+        }
+        
+        buttonSelectCourse.setOnClickListener {
+            if (spinnerCourses.selectedItemPosition >= 0 && spinnerCourses.selectedItemPosition < courseList.size) {
+                val selectedCourse = courseList[spinnerCourses.selectedItemPosition]
+                courseId = selectedCourse.id
+                courseName = selectedCourse.name
+                
+                // Update UI to show selected course
+                editTextCourseCode.setText(selectedCourse.name)
+                editTextCourseCode.isEnabled = false
+                spinnerCourses.visibility = View.GONE
+                buttonSelectCourse.visibility = View.GONE
+            }
+        }
+
         // Set up save button
         buttonSaveGrade.setOnClickListener {
             saveGrade()
         }
+    }
+    
+    private fun setupUIForSelection() {
+        // Configure student selection UI
+        if (studentId != null && studentName != null) {
+            // Student already selected, show in EditText
+            editTextStudentId.setText(studentName)
+            editTextStudentId.isEnabled = false
+            spinnerStudents.visibility = View.GONE
+            buttonSelectStudent.visibility = View.GONE
+        } else {
+            // Need to select student, show spinner
+            editTextStudentId.visibility = View.GONE
+            spinnerStudents.visibility = View.VISIBLE
+            buttonSelectStudent.visibility = View.VISIBLE
+        }
+        
+        // Configure course selection UI
+        if (courseId != null && courseName != null) {
+            // Course already selected, show in EditText
+            editTextCourseCode.setText(courseName)
+            editTextCourseCode.isEnabled = false
+            spinnerCourses.visibility = View.GONE
+            buttonSelectCourse.visibility = View.GONE
+        } else {
+            // Need to select course, show spinner
+            editTextCourseCode.visibility = View.GONE
+            spinnerCourses.visibility = View.VISIBLE
+            buttonSelectCourse.visibility = View.VISIBLE
+        }
+    }
+    
+    private fun loadStudents() {
+        progressBar.visibility = View.VISIBLE
+        
+        FirebaseUtil.getStudentsCollection()
+            .get()
+            .addOnSuccessListener { documents ->
+                studentList.clear()
+                
+                for (document in documents) {
+                    val student = document.toObject<Student>()
+                    student.id = document.id
+                    studentList.add(student)
+                }
+                
+                // Set up spinner with student names
+                val adapter = ArrayAdapter(
+                    this,
+                    android.R.layout.simple_spinner_item,
+                    studentList.map { it.name }
+                )
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinnerStudents.adapter = adapter
+                
+                progressBar.visibility = View.GONE
+            }
+            .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
+                Toast.makeText(this, "Error loading students: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+    
+    private fun loadCourses() {
+        progressBar.visibility = View.VISIBLE
+        
+        FirebaseUtil.getCoursesCollection()
+            .get()
+            .addOnSuccessListener { documents ->
+                courseList.clear()
+                
+                for (document in documents) {
+                    val course = document.toObject<Course>()
+                    course.id = document.id
+                    courseList.add(course)
+                }
+                
+                // Set up spinner with course names
+                val adapter = ArrayAdapter(
+                    this,
+                    android.R.layout.simple_spinner_item,
+                    courseList.map { it.name }
+                )
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinnerCourses.adapter = adapter
+                
+                progressBar.visibility = View.GONE
+            }
+            .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
+                Toast.makeText(this, "Error loading courses: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun saveGrade() {
@@ -93,11 +229,13 @@ class AddGradeActivity : AppCompatActivity() {
             return
         }
         
-        // If we don't have student or course ID, we need to look them up
+        // Check if we have student and course
         if (studentId == null || courseId == null) {
             Toast.makeText(this, getString(R.string.error_select_student_course), Toast.LENGTH_SHORT).show()
             return
         }
+        
+        progressBar.visibility = View.VISIBLE
         
         // First check if the student already has a grade for this course
         FirebaseUtil.getGradesCollection()
@@ -120,6 +258,7 @@ class AddGradeActivity : AppCompatActivity() {
                         val gradeId = documents.documents[0].id
                         updateExistingGrade(gradeId, newScore, gradeText)
                     } else {
+                        progressBar.visibility = View.GONE
                         Toast.makeText(this, getString(R.string.grade_not_higher), Toast.LENGTH_SHORT).show()
                         setResult(RESULT_NO_CHANGE)
                         finish()
@@ -127,6 +266,7 @@ class AddGradeActivity : AppCompatActivity() {
                 }
             }
             .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
                 Toast.makeText(this, getString(R.string.error_checking_grades, e.message), Toast.LENGTH_SHORT).show()
             }
     }
@@ -147,6 +287,7 @@ class AddGradeActivity : AppCompatActivity() {
         FirebaseUtil.getGradesCollection()
             .add(grade.toMap())
             .addOnSuccessListener {
+                progressBar.visibility = View.GONE
                 Toast.makeText(this, getString(R.string.grade_added_success), Toast.LENGTH_SHORT).show()
                 
                 // Create result intent with information about the added grade
@@ -160,6 +301,7 @@ class AddGradeActivity : AppCompatActivity() {
                 finish()
             }
             .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
                 Toast.makeText(this, getString(R.string.error_adding_grade, e.message), Toast.LENGTH_SHORT).show()
             }
     }
@@ -174,6 +316,7 @@ class AddGradeActivity : AppCompatActivity() {
         FirebaseUtil.getGradesCollection().document(gradeId)
             .update(updates)
             .addOnSuccessListener {
+                progressBar.visibility = View.GONE
                 Toast.makeText(this, getString(R.string.grade_updated_success), Toast.LENGTH_SHORT).show()
                 
                 // Create result intent with information about the updated grade
@@ -187,6 +330,7 @@ class AddGradeActivity : AppCompatActivity() {
                 finish()
             }
             .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
                 Toast.makeText(this, getString(R.string.error_updating_grade, e.message), Toast.LENGTH_SHORT).show()
             }
     }

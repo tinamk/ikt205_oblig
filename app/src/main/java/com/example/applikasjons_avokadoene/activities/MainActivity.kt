@@ -4,8 +4,10 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import android.widget.Toast
 import com.example.applikasjons_avokadoene.R
 import com.example.applikasjons_avokadoene.fragments.CourseFragment
+import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 
 /**
  * Main screen with navigation buttons to Students and Courses sections
@@ -35,6 +37,9 @@ class MainActivity : AppCompatActivity() {
                 .add(R.id.fragmentContainerView, CourseFragment())
                 .commit()
         }
+        
+        // Test Firebase connection
+        testFirebaseConnection()
     }
 
     /**
@@ -52,5 +57,23 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, CourseListActivity::class.java)
             startActivity(intent)
         }
+    }
+    
+    /**
+     * Test if Firebase connection is working correctly
+     */
+    private fun testFirebaseConnection() {
+        // Check if we can get a collection reference
+        val coursesCollection = FirebaseUtil.getCoursesCollection()
+        coursesCollection.limit(1).get()
+            .addOnSuccessListener {
+                // Connection successful
+                android.util.Log.d("MainActivity", "Firebase connection test: SUCCESS")
+            }
+            .addOnFailureListener { e ->
+                // Connection failed
+                android.util.Log.e("MainActivity", "Firebase connection test: FAILED - ${e.message}")
+                Toast.makeText(this, "Firebase tilkobling feilet: ${e.message}", Toast.LENGTH_LONG).show()
+            }
     }
 }
