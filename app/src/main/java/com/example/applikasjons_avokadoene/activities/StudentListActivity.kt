@@ -54,6 +54,9 @@ class StudentListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_student_list)
         title = getString(R.string.student_list)
+        
+        // Legg til tilbakeknapp i actionbar
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         // Initialize UI components
         recyclerView = findViewById(R.id.recyclerViewStudents)
@@ -292,5 +295,16 @@ class StudentListActivity : AppCompatActivity() {
             }
             .setIcon(android.R.drawable.ic_dialog_info)
             .show()
+    }
+
+    // Håndter klikk på tilbakeknappen i actionbar
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

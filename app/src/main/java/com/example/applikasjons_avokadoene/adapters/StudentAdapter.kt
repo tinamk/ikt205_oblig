@@ -1,5 +1,6 @@
 package com.example.applikasjons_avokadoene.adapters
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,6 +50,18 @@ class StudentAdapter(
         holder.btnAddGrade.setOnClickListener { onAddGradeClick(student) }
         holder.btnEdit.setOnClickListener { onEditClick(student) }
         holder.btnDelete.setOnClickListener { onDeleteClick(student) }
+        
+        // Make the entire item view clickable to view student details
+        holder.itemView.setOnClickListener {
+            // Log at vi trykker på studenten
+            android.util.Log.d("StudentAdapter", "Clicked on student: ${student.name} with ID: ${student.id}")
+            // Send studenten til StudentDetailActivity
+            val context = holder.itemView.context
+            val intent = Intent(context, com.example.applikasjons_avokadoene.activities.StudentDetailActivity::class.java)
+            intent.putExtra("STUDENT_ID", student.id)
+            intent.putExtra("STUDENT_NAME", student.name)
+            context.startActivity(intent)
+        }
     }
 
     override fun getItemCount(): Int = students.size

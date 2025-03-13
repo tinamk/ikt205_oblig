@@ -14,8 +14,8 @@ data class Course(
     val studentsEnrolled: Int = 0,
     @Exclude val grades: MutableList<String> = mutableListOf(),
     @Exclude var averageGrade: String = "N/A",
-    val createdAt: Timestamp = Timestamp.now(),
-    var updatedAt: Timestamp = Timestamp.now()
+    val createdAt: Timestamp? = Timestamp.now(),
+    var updatedAt: Timestamp? = Timestamp.now()
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
@@ -61,14 +61,22 @@ data class Course(
      * Convert Course object to HashMap for Firestore
      */
     fun toMap(): Map<String, Any?> {
-        return hashMapOf(
+        val map = hashMapOf<String, Any?>(
             "name" to name,
             "code" to code,
             "instructor" to instructor,
-            "studentsEnrolled" to studentsEnrolled,
-            "createdAt" to createdAt,
-            "updatedAt" to Timestamp.now()
+            "studentsEnrolled" to studentsEnrolled
         )
+        
+        // Only add timestamps if they're not null
+        if (createdAt != null) {
+            map["createdAt"] = createdAt
+        }
+        
+        // Always use current timestamp for updates
+        map["updatedAt"] = Timestamp.now()
+        
+        return map
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

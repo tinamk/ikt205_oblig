@@ -48,6 +48,7 @@ class CourseListActivity : AppCompatActivity() {
         const val EXTRA_COURSE = "COURSE"
         const val EXTRA_COURSE_ID = "COURSE_ID"
         const val EXTRA_COURSE_NAME = "COURSE_NAME"
+        const val EXTRA_COURSE_CODE = "COURSE_CODE"
         const val REQUEST_ADD_GRADE = 3
     }
 
@@ -55,7 +56,10 @@ class CourseListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_course_list)
         title = getString(R.string.course_list)
-
+        
+        // Legg til tilbakeknapp i actionbar
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        
         // Initialize RecyclerView and other UI components
         recyclerView = findViewById(R.id.recyclerViewCourses)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -127,126 +131,134 @@ class CourseListActivity : AppCompatActivity() {
         val tag = "CourseListActivity"
         android.util.Log.d(tag, "Starting to fetch courses from Firestore")
         
+        // Midlertidig liste for å samle kursene
+        val tempCourseList = mutableListOf<Course>()
+        
         FirebaseUtil.getCoursesCollection()
             .get()
             .addOnSuccessListener { documents ->
                 android.util.Log.d(tag, "Got ${documents.size()} courses from Firestore")
                 
-                allCourses.clear() // Clear list before adding new data
+                // Clear lists
+                tempCourseList.clear()
+                allCourses.clear()
                 courseList.clear()
                 
-                // Load all courses immediately
+                if (documents.isEmpty) {
+                    // Ingen kurs funnet
+                    android.util.Log.d(tag, "No courses found in database")
+                    progressBar.visibility = View.GONE
+                    return@addOnSuccessListener
+                }
+                
+                // Process each document
                 for (document in documents) {
-                    android.util.Log.d(tag, "Processing course document: ${document.id}")
                     try {
-                        val course = document.toObject<Course>().apply {
-                            id = document.id // Assign Firestore document ID
-                        }
-                        allCourses.add(course)
-                        android.util.Log.d(tag, "Added course to allCourses: ${course.name}")
+                        val course = document.toObject(Course::class.java)
+                        course.id = document.id
+                        tempCourseList.add(course)
+                        android.util.Log.d(tag, "Added course to tempList: ${course.name} (${course.id})")
                     } catch (e: Exception) {
-                        android.util.Log.e(tag, "Error converting document to Course: ${e.message}")
+                        android.util.Log.e(tag, "Error processing course: ${e.message}")
                     }
                 }
                 
-                // Apply any active filter
+                // Oppdater hovedlistene med data
+                allCourses.addAll(tempCourseList)
+                
+                // Apply filter if needed
                 val currentFilter = editTextSearch.text.toString()
                 if (currentFilter.isEmpty()) {
                     courseList.addAll(allCourses)
-                    android.util.Log.d(tag, "Added all ${allCourses.size} courses to courseList")
                 } else {
                     filterCourses(currentFilter)
-                    android.util.Log.d(tag, "Filtered courses by '$currentFilter'")
                 }
                 
-                // Update the UI immediately with courses (without grades)
-                courseAdapter.updateCourseList(courseList)
-                android.util.Log.d(tag, "Updated UI with ${courseList.size} courses (before loading grades)")
+                // Test: Opprett en helt ny adapter med data
+                val newAdapter = CourseAdapter(
+                    courseList,
+                    ::editCourse,
+                    ::deleteCourse,
+                    ::addCourse,
+                    ::gradeCourse
+                )
                 
-                // Then load grades for each course
-                loadGradesForCourses()
-            }
-            .addOnFailureListener { e ->
-                android.util.Log.e(tag, "Error fetching courses: ${e.message}")
+                // Oppdater RecyclerView med den nye adapteren
+                recyclerView.adapter = newAdapter
+                
+                android.util.Log.d(tag, "Updated adapter with ${courseList.size} courses")
+                
                 // Hide progress bar
                 progressBar.visibility = View.GONE
                 
-                // Show error message
+                // Now load grades in the background, but don't block UI
+                if (allCourses.isNotEmpty()) {
+                    loadGradesInBackground()
+                }
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e(tag, "Error fetching courses: ${e.message}")
+                progressBar.visibility = View.GONE
                 Toast.makeText(this, getString(R.string.error_fetching_courses, e.message), Toast.LENGTH_SHORT).show()
             }
     }
     
-    private fun loadGradesForCourses() {
+    /**
+     * Load grades for courses in the background
+     * This runs after the UI is already updated with courses
+     */
+    private fun loadGradesInBackground() {
         val tag = "CourseListActivity"
+        android.util.Log.d(tag, "Loading grades in background for ${allCourses.size} courses")
         
-        if (allCourses.isEmpty()) {
-            progressBar.visibility = View.GONE
-            return
-        }
+        val processedCourses = ArrayList<String>() // Track processed course IDs
         
-        // Keep track of processed courses
-        var processedCourses = 0
-        
-        // Now load grades for each course
+        // For each course, load its grades
         for (course in allCourses) {
-            android.util.Log.d(tag, "Loading grades for course: ${course.name} (${course.id})")
-            
             FirebaseUtil.getGradesCollection()
                 .whereEqualTo("courseId", course.id)
                 .get()
                 .addOnSuccessListener { gradeDocuments ->
                     android.util.Log.d(tag, "Found ${gradeDocuments.size()} grades for course ${course.name}")
                     
+                    // Clear existing grades
+                    course.grades.clear()
+                    
                     // Process grades
-                    course.grades.clear() // Clear existing grades
                     for (gradeDoc in gradeDocuments) {
                         val grade = gradeDoc.getString("grade") ?: ""
                         if (grade.isNotEmpty()) {
                             course.grades.add(grade)
-                            android.util.Log.d(tag, "Added grade $grade to course ${course.name}")
                         }
                     }
                     
                     // Calculate average grade
                     course.calculateAverageGrade()
-                    android.util.Log.d(tag, "Calculated average grade for ${course.name}: ${course.averageGrade}")
                     
-                    // Increment processed counter
-                    processedCourses++
-                    android.util.Log.d(tag, "Processed $processedCourses/${allCourses.size} courses")
+                    // Add this course to processed list
+                    processedCourses.add(course.id)
                     
-                    // If all courses processed, update UI again with grade information
-                    if (processedCourses >= allCourses.size) {
-                        android.util.Log.d(tag, "All course grades processed, updating UI")
-                        
-                        // Apply any active filter
+                    // If all courses processed, update UI
+                    if (processedCourses.size >= allCourses.size) {
+                        // Apply filter again
                         val currentFilter = editTextSearch.text.toString()
                         if (currentFilter.isEmpty()) {
                             courseList.clear()
                             courseList.addAll(allCourses)
-                            android.util.Log.d(tag, "Re-added all ${allCourses.size} courses to courseList with grades")
                         } else {
                             filterCourses(currentFilter)
-                            android.util.Log.d(tag, "Re-filtered courses by '$currentFilter' with grades")
                         }
                         
-                        courseAdapter.updateCourseList(courseList) // Update the adapter with new data
-                        android.util.Log.d(tag, "Called updateCourseList with ${courseList.size} courses (with grades)")
-                        progressBar.visibility = View.GONE
+                        // Update adapter with new grade data
+                        courseAdapter.updateCourseList(courseList)
+                        android.util.Log.d(tag, "Updated adapter with grade data for ${courseList.size} courses")
                     }
                 }
                 .addOnFailureListener { e ->
-                    android.util.Log.e(tag, "Error fetching grades for course ${course.name}: ${e.message}")
+                    android.util.Log.e(tag, "Error loading grades for course ${course.name}: ${e.message}")
                     
-                    // Count this course as processed even on failure
-                    processedCourses++
-                    android.util.Log.d(tag, "Processed (after error) $processedCourses/${allCourses.size} courses")
-                    
-                    // If all courses processed, update UI
-                    if (processedCourses >= allCourses.size) {
-                        android.util.Log.d(tag, "All course grades processed (some with errors), updating UI")
-                        progressBar.visibility = View.GONE
-                    }
+                    // Add to processed even on failure
+                    processedCourses.add(course.id)
                 }
         }
     }
@@ -420,5 +432,16 @@ class CourseListActivity : AppCompatActivity() {
             }
             .setIcon(android.R.drawable.ic_dialog_info)
             .show()
+    }
+
+    // Håndter klikk på tilbakeknappen i actionbar
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }

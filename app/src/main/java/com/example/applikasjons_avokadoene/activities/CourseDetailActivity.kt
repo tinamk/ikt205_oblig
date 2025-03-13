@@ -1,189 +1,265 @@
 package com.example.applikasjons_avokadoene.activities
 
-import android.graphics.Color
 import android.os.Bundle
+import android.view.View
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.applikasjons_avokadoene.R
+import com.example.applikasjons_avokadoene.adapters.GradeAdapter
+import com.example.applikasjons_avokadoene.adapters.StudentInCourseAdapter
 import com.example.applikasjons_avokadoene.models.Course
 import com.example.applikasjons_avokadoene.models.Grade
+import com.example.applikasjons_avokadoene.models.Student
 import com.example.applikasjons_avokadoene.utils.FirebaseUtil
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.google.firebase.firestore.ktx.toObject
+import java.util.HashMap
+import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Activity that displays details about a course and student grades in this course
+ */
 class CourseDetailActivity : AppCompatActivity() {
 
-    private lateinit var textCourseName: TextView
-    private lateinit var textCourseCode: TextView
-    private lateinit var textInstructor: TextView
-    private lateinit var textStudentsEnrolled: TextView
-    private lateinit var textAverageGrade: TextView
-    private lateinit var barChart: BarChart
-    private lateinit var course: Course
+    private lateinit var textViewCourseTitle: TextView
+    private lateinit var textViewCourseName: TextView
+    private lateinit var textViewCourseCode: TextView
+    private lateinit var textViewInstructor: TextView
+    private lateinit var textViewStudentsEnrolled: TextView
+    private lateinit var textViewAverageGrade: TextView
+    private lateinit var textViewGradeDistribution: TextView
+    private lateinit var recyclerViewGrades: RecyclerView
+    private lateinit var recyclerViewStudents: RecyclerView
+    private lateinit var textViewStudentsListTitle: TextView
+    private lateinit var progressBar: ProgressBar
+    
+    private var courseId: String? = null
+    private var courseName: String? = null
+    
+    private val gradesList = mutableListOf<Grade>()
+    private val studentsList = mutableListOf<Student>()
+    private lateinit var gradeAdapter: GradeAdapter
+    private lateinit var studentAdapter: StudentInCourseAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_course_detail)
-
-        // Initialize views
-        textCourseName = findViewById(R.id.textCourseName)
-        textCourseCode = findViewById(R.id.textCourseCode)
-        textInstructor = findViewById(R.id.textInstructor)
-        textStudentsEnrolled = findViewById(R.id.textStudentsEnrolled)
-        textAverageGrade = findViewById(R.id.textAverageGrade)
-        barChart = findViewById(R.id.barChartGrades)
-
-        // Get course from intent
-        val courseId = intent.getStringExtra("COURSE_ID") ?: return finish()
         
-        // Load course data
-        loadCourseData(courseId)
+        // Legg til tilbakeknapp i actionbar
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        
+        // Initialize views
+        textViewCourseTitle = findViewById(R.id.textCourseTitle)
+        textViewCourseName = findViewById(R.id.textCourseName)
+        textViewCourseCode = findViewById(R.id.textCourseCode)
+        textViewInstructor = findViewById(R.id.textInstructor)
+        textViewStudentsEnrolled = findViewById(R.id.textStudentsEnrolled)
+        textViewAverageGrade = findViewById(R.id.textAverageGrade)
+        textViewGradeDistribution = findViewById(R.id.textGradeDistribution)
+        recyclerViewGrades = findViewById(R.id.recyclerViewGrades)
+        recyclerViewStudents = findViewById(R.id.recyclerViewStudents)
+        textViewStudentsListTitle = findViewById(R.id.textViewStudentsListTitle)
+        progressBar = findViewById(R.id.progressBar)
+        
+        // Get data from intent
+        courseId = intent.getStringExtra(CourseListActivity.EXTRA_COURSE_ID)
+        courseName = intent.getStringExtra(CourseListActivity.EXTRA_COURSE_NAME)
+        
+        // Set title
+        title = courseName ?: "Course Details"
+        textViewCourseTitle.text = "Details for $courseName"
+        
+        // Set up RecyclerViews
+        recyclerViewGrades.layoutManager = LinearLayoutManager(this)
+        gradeAdapter = GradeAdapter(gradesList)
+        recyclerViewGrades.adapter = gradeAdapter
+        
+        recyclerViewStudents.layoutManager = LinearLayoutManager(this)
+        studentAdapter = StudentInCourseAdapter(studentsList)
+        recyclerViewStudents.adapter = studentAdapter
+        
+        // Load course data and grades
+        if (courseId != null) {
+            loadCourseData()
+            loadCourseGrades()
+            loadStudentsInCourse()
+        } else {
+            Toast.makeText(this, "Error: No course ID provided", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
     
-    private fun loadCourseData(courseId: String) {
-        FirebaseUtil.getCoursesCollection().document(courseId)
+    private fun loadCourseData() {
+        progressBar.visibility = View.VISIBLE
+        
+        FirebaseUtil.getCoursesCollection().document(courseId!!)
             .get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    course = document.toObject<Course>() ?: return@addOnSuccessListener
-                    course.id = document.id
-                    
-                    // Display course details
-                    displayCourseDetails()
-                    
-                    // Load grades for this course
-                    loadCourseGrades(courseId)
+                    val course = document.toObject<Course>()
+                    course?.let {
+                        // Update UI with course data
+                        textViewCourseName.text = "Course Name: ${it.name}"
+                        textViewCourseCode.text = "Course Code: ${it.code}"
+                        textViewInstructor.text = "Instructor: ${it.instructor}"
+                        textViewStudentsEnrolled.text = "Enrolled Students: ${it.studentsEnrolled}"
+                        textViewAverageGrade.text = "Average Grade: ${it.averageGrade}"
+                    }
                 } else {
                     Toast.makeText(this, "Course not found", Toast.LENGTH_SHORT).show()
-                    finish()
                 }
+                progressBar.visibility = View.GONE
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Error loading course: ${e.message}", Toast.LENGTH_SHORT).show()
-                finish()
+                progressBar.visibility = View.GONE
             }
     }
     
-    private fun loadCourseGrades(courseId: String) {
+    private fun loadCourseGrades() {
+        progressBar.visibility = View.VISIBLE
+        
         FirebaseUtil.getGradesCollection()
             .whereEqualTo("courseId", courseId)
             .get()
             .addOnSuccessListener { documents ->
-                val grades = mutableListOf<Grade>()
+                gradesList.clear()
                 
-                for (document in documents) {
-                    val grade = document.toObject<Grade>()
-                    grade.id = document.id
-                    grades.add(grade)
+                if (documents.isEmpty) {
+                    textViewGradeDistribution.text = "No grades found for this course"
+                } else {
+                    // Count of grades for distribution
+                    val gradeCounts = HashMap<String, Int>()
+                    
+                    for (document in documents) {
+                        val grade = document.toObject<Grade>()
+                        grade.id = document.id
+                        gradesList.add(grade)
+                        
+                        // Count for distribution
+                        val letterGrade = grade.grade
+                        gradeCounts[letterGrade] = (gradeCounts[letterGrade] ?: 0) + 1
+                    }
+                    
+                    // Create distribution text
+                    val distributionText = StringBuilder("Grade Distribution:\n")
+                    for (grade in listOf("A", "B", "C", "D", "E", "F")) {
+                        val count = gradeCounts[grade] ?: 0
+                        distributionText.append("$grade: $count\n")
+                    }
+                    
+                    textViewGradeDistribution.text = distributionText.toString()
+                    
+                    // Sort grades by student name
+                    gradesList.sortBy { it.studentName }
+                    
+                    // Update the adapter
+                    gradeAdapter.notifyDataSetChanged()
                 }
                 
-                // Setup grade distribution chart with the loaded grades
-                setupGradeDistributionChart(grades)
-                
-                // Calculate and update average grade
-                if (grades.isNotEmpty()) {
-                    calculateAverageGrade(grades)
-                }
+                progressBar.visibility = View.GONE
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Error loading grades: ${e.message}", Toast.LENGTH_SHORT).show()
+                progressBar.visibility = View.GONE
             }
     }
     
-    private fun displayCourseDetails() {
-        textCourseName.text = "Course Name: ${course.name}"
-        textCourseCode.text = "Course Code: ${course.code}"
-        textInstructor.text = "Instructor: ${course.instructor}"
-        textStudentsEnrolled.text = "Enrolled Students: ${course.studentsEnrolled}"
-        textAverageGrade.text = "Average Grade: Calculating..."
-    }
-    
-    private fun calculateAverageGrade(grades: List<Grade>) {
-        if (grades.isEmpty()) {
-            textAverageGrade.text = "Average Grade: N/A"
-            return
-        }
+    /**
+     * Load all students that have grades in this course
+     */
+    private fun loadStudentsInCourse() {
+        progressBar.visibility = View.VISIBLE
         
-        val average = grades.map { it.score }.average()
-        val letterGrade = when {
-            average >= 4.5 -> "A"
-            average >= 3.5 -> "B"
-            average >= 2.5 -> "C"
-            average >= 1.5 -> "D"
-            average >= 0.5 -> "E"
-            else -> "F"
-        }
-        
-        textAverageGrade.text = "Average Grade: $letterGrade"
-    }
-    
-    private fun setupGradeDistributionChart(grades: List<Grade>) {
-        // Count grades
-        val gradeCount = mutableMapOf(
-            "A" to 0,
-            "B" to 0,
-            "C" to 0,
-            "D" to 0,
-            "E" to 0,
-            "F" to 0
-        )
-        
-        // Count each grade
-        grades.forEach { grade ->
-            val letterGrade = grade.grade
-            if (letterGrade.isNotEmpty()) {
-                gradeCount[letterGrade] = (gradeCount[letterGrade] ?: 0) + 1
+        // First, get all grades for this course to find student IDs
+        FirebaseUtil.getGradesCollection()
+            .whereEqualTo("courseId", courseId)
+            .get()
+            .addOnSuccessListener { gradeDocuments ->
+                // Extract unique student IDs
+                val studentIds = HashSet<String>()
+                
+                for (gradeDoc in gradeDocuments) {
+                    val data = gradeDoc.data
+                    val studentId = data["studentId"] as? String
+                    if (!studentId.isNullOrEmpty()) {
+                        studentIds.add(studentId)
+                    }
+                }
+                
+                if (studentIds.isEmpty()) {
+                    textViewStudentsListTitle.text = "No students enrolled in this course"
+                    progressBar.visibility = View.GONE
+                    return@addOnSuccessListener
+                }
+                
+                // Clear the existing student list
+                studentsList.clear()
+                
+                // Fetch each student's details
+                var completedCount = 0
+                
+                for (studentId in studentIds) {
+                    FirebaseUtil.getStudentsCollection().document(studentId)
+                        .get()
+                        .addOnSuccessListener { studentDoc ->
+                            if (studentDoc.exists()) {
+                                val data = studentDoc.data
+                                if (data != null) {
+                                    val student = Student(
+                                        id = studentDoc.id,
+                                        name = data["name"] as? String ?: "Unknown",
+                                        studentId = data["studentId"] as? String ?: "",
+                                        email = data["email"] as? String ?: "",
+                                        phone = data["phone"] as? String ?: ""
+                                    )
+                                    studentsList.add(student)
+                                }
+                            }
+                            
+                            // Count this student as processed
+                            completedCount++
+                            
+                            // If all students have been processed, update the UI
+                            if (completedCount >= studentIds.size) {
+                                // Sort student list by name
+                                studentsList.sortBy { it.name }
+                                
+                                // Update UI with student list
+                                textViewStudentsListTitle.text = "Students in this course (${studentsList.size})"
+                                studentAdapter.notifyDataSetChanged()
+                                progressBar.visibility = View.GONE
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            // Count as processed even on failure
+                            completedCount++
+                            
+                            if (completedCount >= studentIds.size) {
+                                textViewStudentsListTitle.text = "Students in this course (${studentsList.size})"
+                                studentAdapter.notifyDataSetChanged()
+                                progressBar.visibility = View.GONE
+                            }
+                        }
+                }
             }
+            .addOnFailureListener { e ->
+                progressBar.visibility = View.GONE
+                Toast.makeText(this, "Error loading students: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // Håndter klikk på tilbakeknappen i actionbar
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        
-        // Create bar entries
-        val entries = ArrayList<BarEntry>()
-        entries.add(BarEntry(0f, gradeCount["A"]?.toFloat() ?: 0f))
-        entries.add(BarEntry(1f, gradeCount["B"]?.toFloat() ?: 0f))
-        entries.add(BarEntry(2f, gradeCount["C"]?.toFloat() ?: 0f))
-        entries.add(BarEntry(3f, gradeCount["D"]?.toFloat() ?: 0f))
-        entries.add(BarEntry(4f, gradeCount["E"]?.toFloat() ?: 0f))
-        entries.add(BarEntry(5f, gradeCount["F"]?.toFloat() ?: 0f))
-        
-        // Create dataset
-        val dataSet = BarDataSet(entries, "Grade Distribution")
-        dataSet.colors = listOf(
-            Color.rgb(76, 175, 80),  // A - Green
-            Color.rgb(139, 195, 74), // B - Light Green
-            Color.rgb(255, 235, 59), // C - Yellow
-            Color.rgb(255, 152, 0),  // D - Orange
-            Color.rgb(255, 87, 34),  // E - Deep Orange
-            Color.rgb(244, 67, 54)   // F - Red
-        )
-        
-        // Create bar data
-        val barData = BarData(dataSet)
-        barData.barWidth = 0.9f
-        
-        // Configure chart
-        barChart.data = barData
-        barChart.description.isEnabled = false
-        barChart.legend.isEnabled = true
-        barChart.setFitBars(true)
-        
-        // Configure X axis
-        val xAxis = barChart.xAxis
-        xAxis.position = XAxis.XAxisPosition.BOTTOM
-        xAxis.granularity = 1f
-        xAxis.valueFormatter = IndexAxisValueFormatter(arrayOf("A", "B", "C", "D", "E", "F"))
-        
-        // Configure Y axis
-        barChart.axisLeft.axisMinimum = 0f
-        barChart.axisRight.isEnabled = false
-        
-        // Animate and refresh
-        barChart.animateY(1000)
-        barChart.invalidate()
     }
 }

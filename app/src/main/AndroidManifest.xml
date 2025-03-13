@@ -53,6 +53,11 @@
         <activity
             android:name=".activities.AddGradeActivity"
             android:exported="false" />
+            
+        <!-- Student Detail Activity -->
+        <activity
+            android:name=".activities.StudentDetailActivity"
+            android:exported="false" />
 
     </application>
 

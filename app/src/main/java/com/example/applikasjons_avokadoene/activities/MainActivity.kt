@@ -30,13 +30,6 @@ class MainActivity : AppCompatActivity() {
 
         // Set click listeners
         setupClickListeners()
-
-        // Add CourseFragment to the FragmentContainerView
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .add(R.id.fragmentContainerView, CourseFragment())
-                .commit()
-        }
         
         // Test Firebase connection
         testFirebaseConnection()
