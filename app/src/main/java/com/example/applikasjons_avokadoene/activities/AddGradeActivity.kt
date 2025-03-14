@@ -17,6 +17,7 @@ import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ktx.toObject
 
+// Activity for adding a grade
 class AddGradeActivity : AppCompatActivity() {
 
     private lateinit var editTextStudentId: EditText
@@ -36,19 +37,21 @@ class AddGradeActivity : AppCompatActivity() {
     
     private val studentList = mutableListOf<Student>()
     private val courseList = mutableListOf<Course>()
-    
+
     companion object {
         const val RESULT_GRADE_ADDED = 100
         const val RESULT_GRADE_UPDATED = 101
         const val RESULT_NO_CHANGE = 102
     }
 
+
+    // Initialize UI elements and set click listener for save button
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_grade)
         title = getString(R.string.add_grade)
         
-        // Legg til tilbakeknapp i actionbar
+        // Add back button to action bar
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         // Initialize views
@@ -106,7 +109,8 @@ class AddGradeActivity : AppCompatActivity() {
             }
         })
     }
-    
+
+    // Setup UI based on what was passed
     private fun setupUIForSelection() {
         // Configure student selection UI
         if (studentId != null && studentName != null) {
@@ -138,7 +142,7 @@ class AddGradeActivity : AppCompatActivity() {
             buttonSelectCourse.visibility = View.VISIBLE
         }
     }
-    
+    // Load students from Firestore
     private fun loadStudents() {
         progressBar.visibility = View.VISIBLE
         
@@ -169,7 +173,8 @@ class AddGradeActivity : AppCompatActivity() {
                 Toast.makeText(this, "Error loading students: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
-    
+
+    // Load courses from Firestore
     private fun loadCourses() {
         progressBar.visibility = View.VISIBLE
         
@@ -201,6 +206,7 @@ class AddGradeActivity : AppCompatActivity() {
             }
     }
 
+    // Save grade to Firestore
     private fun saveGrade() {
         // Check if we have required data
         if (studentId == null || courseId == null) {
@@ -269,7 +275,8 @@ class AddGradeActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.error_checking_grades, e.message), Toast.LENGTH_SHORT).show()
             }
     }
-    
+
+    // Add a new grade
     private fun addNewGrade(gradeLetter: String, gradeScore: Double) {
         val grade = Grade(
             studentId = studentId!!,
@@ -282,7 +289,8 @@ class AddGradeActivity : AppCompatActivity() {
         )
         
         Log.d("AddGradeActivity", "Saving new grade: $gradeLetter for student: $studentName in course: $courseName")
-        
+
+        // Add grade to Firestore
         FirebaseUtil.getGradesCollection()
             .add(grade.toMap())
             .addOnSuccessListener {
@@ -307,7 +315,8 @@ class AddGradeActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.error_adding_grade, e.message), Toast.LENGTH_SHORT).show()
             }
     }
-    
+
+    // Update an existing grade
     private fun updateGrade(gradeId: String, gradeLetter: String, gradeScore: Double) {
         val updates = hashMapOf<String, Any>(
             "grade" to gradeLetter,
@@ -459,7 +468,7 @@ class AddGradeActivity : AppCompatActivity() {
         }
     }
 
-    // Håndter klikk på tilbakeknappen i actionbar
+    // Handle back button press
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {

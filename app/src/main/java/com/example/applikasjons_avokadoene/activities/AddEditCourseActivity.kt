@@ -12,6 +12,8 @@ import com.example.applikasjons_avokadoene.models.Course
 import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 import com.google.firebase.Timestamp
 
+
+// Activity for adding or editing a course
 class AddEditCourseActivity : AppCompatActivity() {
 
     private lateinit var editTextCourseName: EditText
@@ -30,6 +32,7 @@ class AddEditCourseActivity : AppCompatActivity() {
         const val RESULT_COURSE_UPDATED = 101
     }
 
+    // Initialize UI elements and set click listener for save button
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_edit_course)
@@ -67,6 +70,7 @@ class AddEditCourseActivity : AppCompatActivity() {
         }
     }
 
+    // Save course to Firebase
     private fun saveCourse() {
         val courseName = editTextCourseName.text.toString().trim()
         val courseCode = editTextCourseCode.text.toString().trim()
@@ -112,6 +116,7 @@ class AddEditCourseActivity : AppCompatActivity() {
                 updatedAt = Timestamp.now()
             )
 
+            // Add to Firestore
             FirebaseUtil.getCoursesCollection()
                 .add(newCourse.toMap())
                 .addOnSuccessListener { documentRef ->

@@ -17,9 +17,7 @@ data class Grade(
     var date: Timestamp = Timestamp.now()
 ) : Serializable {
 
-    /**
-     * Convert Grade object to HashMap for Firestore
-     */
+  // constructor for Firebase
     fun toMap(): Map<String, Any?> {
         return hashMapOf(
             "studentId" to studentId,

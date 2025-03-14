@@ -15,6 +15,7 @@ import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 import com.google.firebase.Timestamp
 import java.util.UUID
 
+// Activity for adding or editing a student
 class AddEditStudentActivity : AppCompatActivity() {
 
     private lateinit var editTextStudentName: EditText
@@ -33,6 +34,7 @@ class AddEditStudentActivity : AppCompatActivity() {
         const val RESULT_STUDENT_UPDATED = 101
     }
 
+    // Initialize UI elements and set click listener for save button
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_edit_student)
@@ -76,11 +78,13 @@ class AddEditStudentActivity : AppCompatActivity() {
         }
     }
 
+    // Generate a unique student ID
     private fun generateStudentId(): String {
         // Generate a unique ID format like "STU-" followed by a unique number or UUID
         return "STU-" + UUID.randomUUID().toString().substring(0, 8).uppercase()
     }
 
+    // Save student to Firebase
     private fun saveStudent() {
         val name = editTextStudentName.text.toString().trim()
         val idNumber = if (isEditMode) editTextStudentId.text.toString().trim() else generatedStudentId

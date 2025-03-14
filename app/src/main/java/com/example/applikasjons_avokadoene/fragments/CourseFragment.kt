@@ -24,6 +24,7 @@ import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ktx.toObject
 
+// Fragment for displaying a list of courses
 class CourseFragment : Fragment() {
 
     private lateinit var courseAdapter: CourseAdapter
@@ -36,6 +37,7 @@ class CourseFragment : Fragment() {
         const val REQUEST_ADD_GRADE = 3
     }
 
+    // Inflate the layout for this fragment
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -47,12 +49,14 @@ class CourseFragment : Fragment() {
         return view
     }
 
+    // Initialize the RecyclerView and load courses from Firebase
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         loadCoursesFromFirebase()
     }
 
+    // Reload data when the fragment is resumed
     override fun onResume() {
         super.onResume()
         // Legg til ekstra logging
@@ -70,6 +74,7 @@ class CourseFragment : Fragment() {
         loadCoursesFromFirebase()
     }
 
+    // Setup the RecyclerView
     private fun setupRecyclerView() {
         courseAdapter = CourseAdapter(
             courseList,
@@ -90,6 +95,7 @@ class CourseFragment : Fragment() {
         recyclerView.adapter = courseAdapter
     }
 
+    // Load courses from Firebase
     private fun loadCoursesFromFirebase() {
         progressBar.visibility = View.VISIBLE
         textViewNoCourses.visibility = View.GONE
@@ -98,22 +104,24 @@ class CourseFragment : Fragment() {
         val tag = "CourseFragment"
         android.util.Log.d(tag, "Starting to load courses")
 
-        // Ekstra synlighetskontroll
+        // add logging for RecyclerView visibility
         android.util.Log.d(tag, "Before loading - RecyclerView visibility: ${if (recyclerView.visibility == View.VISIBLE) "VISIBLE" else "GONE"}")
         
-        // Løsning: Erstatt hele CourseAdapter med en ny instans
+        // solution for loading courses in background
         val tempCourseList = mutableListOf<Course>()
-        
+
+
+        // get courses from Firestore
         FirebaseUtil.getCoursesCollection()
             .get()
             .addOnSuccessListener { documents ->
                 android.util.Log.d(tag, "Got ${documents.size()} course documents from Firestore")
                 
-                // Tøm listen først
+                // empty the temporary list
                 tempCourseList.clear()
                 
                 if (documents.isEmpty) {
-                    // Ingen kurs funnet - vis melding
+                    // no courses found
                     android.util.Log.d(tag, "No courses found in database")
                     progressBar.visibility = View.GONE
                     recyclerView.visibility = View.GONE
@@ -122,7 +130,7 @@ class CourseFragment : Fragment() {
                     return@addOnSuccessListener
                 }
                 
-                // Legg til kurs i den midlertidige listen
+                // add courses to temporary list
                 for (document in documents) {
                     try {
                         val course = document.toObject(Course::class.java)
@@ -136,11 +144,11 @@ class CourseFragment : Fragment() {
                 
                 android.util.Log.d(tag, "After processing, tempCourseList has ${tempCourseList.size} items")
                 
-                // Oppdater den eksisterende listen med kurs først
+                // Update the course list
                 courseList.clear()
                 courseList.addAll(tempCourseList)
                 
-                // Test: Opprett en helt ny adapter med data
+                // create a new adapter with the updated list
                 val newAdapter = CourseAdapter(
                     courseList,
                     onEditCourseClick = { course ->
@@ -157,10 +165,10 @@ class CourseFragment : Fragment() {
                     }
                 )
                 
-                // Oppdater RecyclerView med den nye adapteren
+                // update the RecyclerView
                 recyclerView.adapter = newAdapter
                 
-                // Oppdater UI
+                // update the UI based on the number of courses
                 if (courseList.isNotEmpty()) {
                     recyclerView.visibility = View.VISIBLE
                     textViewNoCourses.visibility = View.GONE
@@ -171,10 +179,10 @@ class CourseFragment : Fragment() {
                     android.util.Log.d(tag, "No courses after processing, showing textViewNoCourses")
                 }
                 
-                // Skjul progress bar
+                // Hide progress bar
                 progressBar.visibility = View.GONE
                 
-                // Last inn karakterer i bakgrunnen senere hvis nødvendig
+                // Load grades in background
                 if (courseList.isNotEmpty()) {
                     loadGradesInBackground()
                 }
@@ -188,9 +196,8 @@ class CourseFragment : Fragment() {
             }
     }
     
-    // Separat metode for å laste karakterer i bakgrunnen
+    // Separate method for loading grades
     private fun loadGradesInBackground() {
-        // Laster karakterer i bakgrunnen uten å oppdatere UI umiddelbart
         val tag = "CourseFragment"
         android.util.Log.d(tag, "Loading grades in background")
         
@@ -199,7 +206,7 @@ class CourseFragment : Fragment() {
         }
     }
     
-    // Metode for å laste karakterer for et enkelt kurs
+    // Load grades for a specific course
     private fun loadGradesForCourse(course: Course) {
         val tag = "CourseFragment"
         
@@ -223,7 +230,7 @@ class CourseFragment : Fragment() {
                 // Calculate average grade
                 course.calculateAverageGrade()
                 
-                // Oppdater adapter
+                // update the adapter
                 activity?.runOnUiThread {
                     android.util.Log.d(tag, "Updating UI after loading grades for course ${course.name}")
                     courseAdapter.updateCourseList(courseList)
@@ -234,7 +241,7 @@ class CourseFragment : Fragment() {
             }
     }
     
-    // Metode for å redigere kurs
+    // edit course
     private fun showEditCourseDialog(course: Course) {
         android.util.Log.d("CourseFragment", "Edit button clicked for course: ${course.name}")
         try {
@@ -247,14 +254,14 @@ class CourseFragment : Fragment() {
         }
     }
     
-    // Metode for å legge til nye studenter i et kurs
+    // Method add student in course
     private fun addCourse(course: Course) {
         android.util.Log.d("CourseFragment", "Add student button clicked for course: ${course.name}")
-        // Implementer funksjonalitet for å legge til studenter i kurset
+        // Implement logic for adding student to course
         Toast.makeText(requireContext(), "Add student to course feature coming soon", Toast.LENGTH_SHORT).show()
     }
 
-    // Metode for å legge til karakter
+    // Method add grade
     private fun showGradeDialog(course: Course) {
         android.util.Log.d("CourseFragment", "Grade button clicked for course: ${course.name}")
         try {
@@ -268,11 +275,11 @@ class CourseFragment : Fragment() {
         }
     }
     
-    // Metode for å slette kurs
+    // Method delete course
     private fun deleteCourse(course: Course) {
         android.util.Log.d("CourseFragment", "Delete button clicked for course: ${course.name}")
         
-        // Bekreft sletting med en dialogboks
+        // confirmation dialog
         AlertDialog.Builder(requireContext())
             .setTitle(R.string.delete_course)
             .setMessage(getString(R.string.confirm_delete_course, course.name))
@@ -283,11 +290,11 @@ class CourseFragment : Fragment() {
             .show()
     }
     
-    // Faktisk sletting etter bekreftelse
+    // deleting course
     private fun deleteConfirmed(course: Course) {
         progressBar.visibility = View.VISIBLE
-        
-        // Først slett alle karakterer knyttet til kurset
+
+        // delete grades first
         FirebaseUtil.getGradesCollection()
             .whereEqualTo("courseId", course.id)
             .get()
@@ -328,6 +335,8 @@ class CourseFragment : Fragment() {
             }
     }
 
+
+    // Handle result from AddGradeActivity
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         

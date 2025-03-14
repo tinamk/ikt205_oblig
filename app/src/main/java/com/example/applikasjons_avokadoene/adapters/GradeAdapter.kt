@@ -13,28 +13,26 @@ import com.example.applikasjons_avokadoene.models.Grade
 import java.text.SimpleDateFormat
 import java.util.*
 
-/**
- * Adapter for displaying grades in a RecyclerView
- */
+// Adapter for displaying a list of grades
 class GradeAdapter(
     private var gradeList: List<Grade>
 ) : RecyclerView.Adapter<GradeAdapter.GradeViewHolder>() {
 
-    /**
-     * ViewHolder for grade items
-     */
+   // ViewHolder for each grade item
     class GradeViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textViewCourseName: TextView = view.findViewById(R.id.textViewCourseName)
         val textViewGrade: TextView = view.findViewById(R.id.textViewGrade)
         val textViewDate: TextView = view.findViewById(R.id.textViewDate)
     }
 
+    // Create a new ViewHolder
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GradeViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_grade, parent, false)
         return GradeViewHolder(view)
     }
 
+    // Bind data to the ViewHolder
     override fun onBindViewHolder(holder: GradeViewHolder, position: Int) {
         val grade = gradeList[position]
         val context = holder.itemView.context
@@ -70,11 +68,10 @@ class GradeAdapter(
         }
     }
 
+    // Return the number of grades
     override fun getItemCount(): Int = gradeList.size
 
-    /**
-     * Update the adapter with new grade data
-     */
+   // Update the grade list
     fun updateGrades(newGrades: List<Grade>) {
         gradeList = newGrades
         notifyDataSetChanged()

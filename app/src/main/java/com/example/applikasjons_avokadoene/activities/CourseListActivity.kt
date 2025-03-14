@@ -25,10 +25,7 @@ import com.example.applikasjons_avokadoene.models.Course
 import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 import com.google.firebase.firestore.ktx.toObject
 
-/**
- * CourseListActivity displays a list of all courses in the database.
- * It allows users to add, edit, delete courses and add grades to courses.
- */
+// Course list activity
 class CourseListActivity : AppCompatActivity() {
 
     // UI components
@@ -57,7 +54,7 @@ class CourseListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_course_list)
         title = getString(R.string.course_list)
         
-        // Legg til tilbakeknapp i actionbar
+        // Add back button to action bar
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         
         // Initialize RecyclerView and other UI components
@@ -91,7 +88,8 @@ class CourseListActivity : AppCompatActivity() {
         // Load courses from Firebase
         fetchCoursesFromFirestore()
     }
-    
+
+    // Set up search functionality
     private fun setupSearch() {
         editTextSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -103,7 +101,8 @@ class CourseListActivity : AppCompatActivity() {
             }
         })
     }
-    
+
+    // Filter courses based on search query
     private fun filterCourses(query: String) {
         val tag = "CourseListActivity"
         android.util.Log.d(tag, "Filtering courses with query: '$query'")
@@ -127,10 +126,7 @@ class CourseListActivity : AppCompatActivity() {
         courseAdapter.updateCourseList(courseList)
     }
 
-    /**
-     * Fetch courses from Firestore database and update the list
-     * This method gets all courses from Firebase and displays them in the RecyclerView
-     */
+    // Fetch courses from Firebase
     private fun fetchCoursesFromFirestore() {
         // Show progress bar
         progressBar.visibility = View.VISIBLE
@@ -139,7 +135,7 @@ class CourseListActivity : AppCompatActivity() {
         val tag = "CourseListActivity"
         android.util.Log.d(tag, "Starting to fetch courses from Firestore")
         
-        // Midlertidig liste for å samle kursene
+        // Temporary list to store courses
         val tempCourseList = mutableListOf<Course>()
         
         FirebaseUtil.getCoursesCollection()
@@ -153,7 +149,7 @@ class CourseListActivity : AppCompatActivity() {
                 courseList.clear()
                 
                 if (documents.isEmpty) {
-                    // Ingen kurs funnet
+                    // No courses found
                     android.util.Log.d(tag, "No courses found in database")
                     progressBar.visibility = View.GONE
                     return@addOnSuccessListener
@@ -171,7 +167,7 @@ class CourseListActivity : AppCompatActivity() {
                     }
                 }
                 
-                // Oppdater hovedlistene med data
+                // Update lists
                 allCourses.addAll(tempCourseList)
                 
                 // Apply filter if needed
@@ -203,10 +199,7 @@ class CourseListActivity : AppCompatActivity() {
             }
     }
     
-    /**
-     * Load grades for courses in the background
-     * This runs after the UI is already updated with courses
-     */
+   // Load grades in the background
     private fun loadGradesInBackground() {
         val tag = "CourseListActivity"
         android.util.Log.d(tag, "Loading grades in background for ${allCourses.size} courses")
@@ -263,10 +256,7 @@ class CourseListActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Handle result from AddEditCourseActivity
-     * This is called when returning from the add/edit course screen
-     */
+    // Handle result from AddEditCourseActivity
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -300,10 +290,7 @@ class CourseListActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Edit course functionality
-     * Opens the AddEditCourseActivity with the course's data
-     */
+ /// Edit course functionality
     private fun editCourse(course: Course) {
         // Legg til logginfo
         android.util.Log.d("CourseListActivity", "editCourse ble kalt for kurs: ${course.name} (${course.id})")
@@ -317,10 +304,7 @@ class CourseListActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Delete course functionality
-     * Shows a confirmation dialog before deleting
-     */
+   // Delete course functionality
     private fun deleteCourse(course: Course) {
         // Legg til logginfo
         android.util.Log.d("CourseListActivity", "deleteCourse ble kalt for kurs: ${course.name} (${course.id})")
@@ -336,10 +320,7 @@ class CourseListActivity : AppCompatActivity() {
             .show()
     }
     
-    /**
-     * Delete course and all related grades from Firebase
-     * Uses a batch operation to ensure all related data is deleted
-     */
+   // Delete course and grades from Firebase
     private fun deleteCourseAndGrades(course: Course) {
         // Show progress bar
         progressBar.visibility = View.VISIBLE
@@ -397,24 +378,18 @@ class CourseListActivity : AppCompatActivity() {
             }
     }
 
-    /**
-     * Add course functionality
-     * Opens the AddEditCourseActivity to create a new course
-     */
+    // Add course functionality
     private fun addCourse(course: Course) {
-        // Legg til logginfo
+        // Add logging
         android.util.Log.d("CourseListActivity", "addCourse ble kalt")
         
         val intent = Intent(this, AddEditCourseActivity::class.java)
         startActivityForResult(intent, REQUEST_ADD_COURSE)
     }
     
-    /**
-     * Add grade to course functionality
-     * Opens the AddGradeActivity with the course's ID and name
-     */
+    // Grade course functionality
     private fun gradeCourse(course: Course) {
-        // Legg til logginfo
+        // Add logging
         android.util.Log.d("CourseListActivity", "gradeCourse ble kalt for kurs: ${course.name} (${course.id})")
         
         val intent = Intent(this, AddGradeActivity::class.java)
@@ -434,7 +409,7 @@ class CourseListActivity : AppCompatActivity() {
             .show()
     }
 
-    // Håndter klikk på tilbakeknappen i actionbar
+    // Handle back button press
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {

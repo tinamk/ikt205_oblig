@@ -19,18 +19,7 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-
-/**
- * CourseAdapter is responsible for displaying a list of courses in a RecyclerView.
- * 
- * RecyclerView is an efficient way to display lists in Android. It reuses (recycles) 
- * the views that scroll off the screen instead of creating new ones, which improves performance.
- * 
- * This adapter handles:
- * 1. Creating view holders for each course item
- * 2. Binding course data to the views
- * 3. Handling click events on course items and buttons
- */
+// Adapter for the RecyclerView in CourseListActivity
 class CourseAdapter(
     private var courseList: MutableList<Course>,
     private val onEditCourseClick: (Course) -> Unit,  // Function to call when edit button is clicked
@@ -39,10 +28,7 @@ class CourseAdapter(
     private val onGradeCourseClick: (Course) -> Unit  // Function to call when grade button is clicked
 ) : RecyclerView.Adapter<CourseAdapter.CourseViewHolder>() {
 
-    /**
-     * ViewHolder class holds references to the views in each item layout
-     * This improves performance by avoiding repeated calls to findViewById
-     */
+  // ViewHolder for each item in the RecyclerView
     class CourseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         // Find and store references to all views in the item layout
         val textCourseName: TextView = itemView.findViewById(R.id.textCourseName)
@@ -57,20 +43,14 @@ class CourseAdapter(
         val gradeDistributionChart: BarChart = itemView.findViewById(R.id.gradeDistributionChart)
     }
 
-    /**
-     * Called when RecyclerView needs a new ViewHolder
-     * This is where we inflate the layout for each item
-     */
+    // Create a new ViewHolder
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CourseViewHolder {
         // Inflate the item layout and create a new ViewHolder
         val itemView = LayoutInflater.from(parent.context).inflate(R.layout.item_course, parent, false)
         return CourseViewHolder(itemView)
     }
 
-    /**
-     * Called by RecyclerView to display data at a specified position
-     * This is where we bind the course data to the views in the ViewHolder
-     */
+    // Bind data to the ViewHolder
     override fun onBindViewHolder(holder: CourseViewHolder, position: Int) {
         if (position >= courseList.size) {
             android.util.Log.e("CourseAdapter", "Position $position is out of bounds (size: ${courseList.size})")
@@ -205,18 +185,13 @@ class CourseAdapter(
         chart.invalidate()
     }
 
-    /**
-     * Returns the total number of items in the data set
-     */
+  // Return the number of items in the list
     override fun getItemCount(): Int {
         android.util.Log.d("CourseAdapter", "getItemCount called, returning ${courseList.size}")
         return courseList.size
     }
 
-    /**
-     * Updates the course list with new data and refreshes the display
-     * This is called when the data changes (e.g., after adding, editing, or deleting a course)
-     */
+    // Update the course list and notify the adapter
     fun updateCourseList(newList: List<Course>) {
         android.util.Log.d("CourseAdapter", "updateCourseList called with ${newList.size} courses")
         

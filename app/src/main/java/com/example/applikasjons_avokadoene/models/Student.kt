@@ -14,9 +14,7 @@ data class Student(
     var updatedAt: Timestamp? = null
 ) : Serializable {
 
-    /**
-     * Convert Student object to HashMap for Firestore
-     */
+  // constructor for Firebase
     fun toMap(): Map<String, Any?> {
         return hashMapOf(
             "name" to name,

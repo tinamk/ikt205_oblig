@@ -11,27 +11,23 @@ import com.example.applikasjons_avokadoene.R
 import com.example.applikasjons_avokadoene.activities.StudentDetailActivity
 import com.example.applikasjons_avokadoene.models.Student
 
-/**
- * Adapter for displaying students enrolled in a course
- */
+// Adapter for displaying a list of students in a course
 class StudentInCourseAdapter(
     private var studentList: List<Student>
 ) : RecyclerView.Adapter<StudentInCourseAdapter.StudentViewHolder>() {
 
-    /**
-     * ViewHolder for student items
-     */
+    // ViewHolder for each student item
     class StudentViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textViewStudentName: TextView = view.findViewById(R.id.textViewStudentName)
         val textViewStudentId: TextView = view.findViewById(R.id.textViewStudentId)
     }
-
+    // Update the student list
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StudentViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_student_in_course, parent, false)
         return StudentViewHolder(view)
     }
-
+    // Bind data to the ViewHolder, including click handling
     override fun onBindViewHolder(holder: StudentViewHolder, position: Int) {
         val student = studentList[position]
         
@@ -39,7 +35,7 @@ class StudentInCourseAdapter(
         holder.textViewStudentName.text = student.name
         holder.textViewStudentId.text = "ID: ${student.studentId}"
         
-        // Make the entire item view clickable to navigate to StudentDetailActivity
+        // Set click listener for the item
         holder.itemView.setOnClickListener {
             try {
                 val context = holder.itemView.context

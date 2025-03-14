@@ -9,9 +9,7 @@ import com.example.applikasjons_avokadoene.R
 import com.example.applikasjons_avokadoene.fragments.CourseFragment
 import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 
-/**
- * Main screen with navigation buttons to Students and Courses sections
- */
+// MainActivity
 class MainActivity : AppCompatActivity() {
 
     private lateinit var btnManageStudents: Button
@@ -35,9 +33,7 @@ class MainActivity : AppCompatActivity() {
         testFirebaseConnection()
     }
 
-    /**
-     * Set up button click listeners
-     */
+    // Set up click listeners for buttons
     private fun setupClickListeners() {
         // Navigate to Students screen
         btnManageStudents.setOnClickListener {
@@ -52,9 +48,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    /**
-     * Test if Firebase connection is working correctly
-     */
+   // Test Firebase connection
     private fun testFirebaseConnection() {
         // Check if we can get a collection reference
         val coursesCollection = FirebaseUtil.getCoursesCollection()

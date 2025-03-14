@@ -22,10 +22,7 @@ import com.example.applikasjons_avokadoene.models.Student
 import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 import com.google.firebase.firestore.ktx.toObject
 
-/**
- * StudentListActivity displays a list of all students in the database.
- * It allows users to add, edit, delete students and add grades to students.
- */
+// Student list activity
 class StudentListActivity : AppCompatActivity() {
     // UI components
     private lateinit var recyclerView: RecyclerView
@@ -141,10 +138,7 @@ class StudentListActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Loads all students from Firebase Firestore database
-     * Updates the RecyclerView with the loaded data
-     */
+  // Load students from Firebase and update the adapter
     private fun loadStudentsFromFirebase() {
         // Show progress bar
         progressBar.visibility = View.VISIBLE
@@ -182,11 +176,7 @@ class StudentListActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.error_loading_students, e.message), Toast.LENGTH_SHORT).show()
             }
     }
-
-    /**
-     * Handles the edit button click for a student
-     * Opens the AddEditStudentActivity with the student's data
-     */
+/// Handle click on edit button for a student
     private fun onEditClick(student: Student) {
         val intent = Intent(this, AddEditStudentActivity::class.java)
         // Pass student data to the edit activity using Intent extras
@@ -198,10 +188,7 @@ class StudentListActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_EDIT_STUDENT)
     }
 
-    /**
-     * Handles the delete button click for a student
-     * Shows a confirmation dialog before deleting
-     */
+   // Handle click on delete button for a student
     private fun onDeleteClick(student: Student) {
         // Show confirmation dialog using AlertDialog
         AlertDialog.Builder(this)
@@ -214,10 +201,7 @@ class StudentListActivity : AppCompatActivity() {
             .show()
     }
 
-    /**
-     * Deletes a student and all their grades from Firebase
-     * Uses a batch operation to ensure all related data is deleted
-     */
+   // Delete a student and their grades from Firebase
     private fun deleteStudentAndGrades(student: Student) {
         // Show progress bar
         progressBar.visibility = View.VISIBLE
@@ -275,10 +259,7 @@ class StudentListActivity : AppCompatActivity() {
             }
     }
 
-    /**
-     * Handles the add grade button click for a student
-     * Opens the AddGradeActivity with the student's ID and name
-     */
+    //Handle click on add grade button for a student
     private fun onAddGradeClick(student: Student) {
         val intent = Intent(this, AddGradeActivity::class.java)
         intent.putExtra(EXTRA_STUDENT_ID, student.id)

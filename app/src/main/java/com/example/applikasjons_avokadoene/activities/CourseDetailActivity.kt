@@ -19,9 +19,7 @@ import com.google.firebase.firestore.ktx.toObject
 import java.util.HashMap
 import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * Activity that displays details about a course and student grades in this course
- */
+// Course detail activity
 class CourseDetailActivity : AppCompatActivity() {
 
     private lateinit var textViewCourseTitle: TextView
@@ -48,7 +46,7 @@ class CourseDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_course_detail)
         
-        // Legg til tilbakeknapp i actionbar
+        // Add back button to action bar
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         
         // Initialize views
@@ -91,7 +89,8 @@ class CourseDetailActivity : AppCompatActivity() {
             finish()
         }
     }
-    
+
+    // Load course data from Firestore
     private fun loadCourseData() {
         progressBar.visibility = View.VISIBLE
         
@@ -118,7 +117,8 @@ class CourseDetailActivity : AppCompatActivity() {
                 progressBar.visibility = View.GONE
             }
     }
-    
+
+    // Load course grades from Firestore
     private fun loadCourseGrades() {
         progressBar.visibility = View.VISIBLE
         
@@ -168,9 +168,7 @@ class CourseDetailActivity : AppCompatActivity() {
             }
     }
     
-    /**
-     * Load all students that have grades in this course
-     */
+    // Load students enrolled in the course
     private fun loadStudentsInCourse() {
         progressBar.visibility = View.VISIBLE
         
@@ -252,7 +250,7 @@ class CourseDetailActivity : AppCompatActivity() {
             }
     }
 
-    // Håndter klikk på tilbakeknappen i actionbar
+    // Handle back button press
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {

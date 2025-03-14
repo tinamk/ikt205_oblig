@@ -15,9 +15,7 @@ import com.example.applikasjons_avokadoene.models.Student
 import com.example.applikasjons_avokadoene.utils.FirebaseUtil
 import com.google.firebase.firestore.ktx.toObject
 
-/**
- * Activity that displays details about a student and their grades
- */
+// Student detail activity
 class StudentDetailActivity : AppCompatActivity() {
 
     private lateinit var textViewStudentName: TextView
@@ -34,11 +32,12 @@ class StudentDetailActivity : AppCompatActivity() {
     private val gradesList = mutableListOf<Grade>()
     private lateinit var gradeAdapter: GradeAdapter
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_student_detail)
         
-        // Legg til tilbakeknapp i actionbar
+        // Add back button to action bar
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         
         // Initialize views
@@ -150,7 +149,7 @@ class StudentDetailActivity : AppCompatActivity() {
             }
     }
 
-    // Håndter klikk på tilbakeknappen i actionbar
+    // Handle back button press
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {

@@ -5,10 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-/**
- * Utility class for Firebase operations
- * Contains methods to get references to Firestore collections
- */
+// Firebase utility class
 object FirebaseUtil {
     // Collection names as constants
     const val COLLECTION_STUDENTS = "students"
@@ -18,18 +15,14 @@ object FirebaseUtil {
     // Get Firestore instance
     val db: FirebaseFirestore = Firebase.firestore
 
-    /**
-     * Get reference to students collection
-     */
+    //
     fun getStudentsCollection(): CollectionReference {
         val collection = db.collection(COLLECTION_STUDENTS)
         android.util.Log.d("FirebaseUtil", "Getting reference to students collection")
         return collection
     }
 
-    /**
-     * Get reference to courses collection
-     */
+    // Get reference to courses collection
     fun getCoursesCollection(): CollectionReference {
         android.util.Log.d("FirebaseUtil", "Getting reference to courses collection")
         val collectionPath = COLLECTION_COURSES
@@ -37,9 +30,7 @@ object FirebaseUtil {
         return db.collection(collectionPath)
     }
 
-    /**
-     * Get reference to grades collection
-     */
+   // Get reference to grades collection
     fun getGradesCollection(): CollectionReference {
         android.util.Log.d("FirebaseUtil", "Getting reference to grades collection")
         return db.collection(COLLECTION_GRADES)
