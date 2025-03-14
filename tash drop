@@ -1,0 +1,107 @@
+[1mdiff --git a/app/src/main/java/com/example/applikasjons_avokadoene/activities/CourseListActivity.kt b/app/src/main/java/com/example/applikasjons_avokadoene/activities/CourseListActivity.kt[m
+[1mindex e8918a1..b4313bf 100644[m
+[1m--- a/app/src/main/java/com/example/applikasjons_avokadoene/activities/CourseListActivity.kt[m
+[1m+++ b/app/src/main/java/com/example/applikasjons_avokadoene/activities/CourseListActivity.kt[m
+[36m@@ -59,14 +59,15 @@[m [mclass CourseListActivity : AppCompatActivity() {[m
+         FirebaseUtil.getCoursesCollection()[m
+             .get()[m
+             .addOnSuccessListener { documents ->[m
+[31m-                courseList.clear() // ✅ Clear list before adding new data[m
+[32m+[m[32m                val fetchedCourses = mutableListOf<Course>()[m
+                 for (document in documents) {[m
+                     val course = document.toObject(Course::class.java).apply {[m
+[31m-                        id = document.id // ✅ Assign Firestore document ID[m
+[32m+[m[32m                        id = document.id[m
+                     }[m
+[31m-                    courseList.add(course)[m
+[32m+[m[32m                    fetchedCourses.add(course)[m
+                 }[m
+[31m-                courseAdapter.notifyDataSetChanged() // ✅ Refresh RecyclerView[m
+[32m+[m[32m                println("Fetched courses: $fetchedCourses")[m
+[32m+[m[32m                courseAdapter.updateCourses(fetchedCourses) // ✅ Bruk `updateCourses()` istedenfor `notifyDataSetChanged()`[m
+             }[m
+             .addOnFailureListener { e ->[m
+                 Toast.makeText(this, "Error fetching courses: ${e.message}", Toast.LENGTH_SHORT).show()[m
+[36m@@ -86,8 +87,8 @@[m [mclass CourseListActivity : AppCompatActivity() {[m
+                     .add(newCourse.toMap()) // ✅ Save to Firestore[m
+                     .addOnSuccessListener { documentRef ->[m
+                         newCourse.id = documentRef.id[m
+[31m-                        courseList.add(newCourse)[m
+[31m-                        courseAdapter.notifyDataSetChanged()[m
+[32m+[m[32m                        val updatedList = courseList + newCourse[m
+[32m+[m[32m                        courseAdapter.updateCourses(updatedList) // ✅ Update the adapter with the new list[m
+                     }[m
+                     .addOnFailureListener { e ->[m
+                         Toast.makeText(this, "Failed to add course: ${e.message}", Toast.LENGTH_SHORT).show()[m
+[1mdiff --git a/app/src/main/java/com/example/applikasjons_avokadoene/adapters/CourseAdapter.kt b/app/src/main/java/com/example/applikasjons_avokadoene/adapters/CourseAdapter.kt[m
+[1mindex 185dbc4..67ce5a2 100644[m
+[1m--- a/app/src/main/java/com/example/applikasjons_avokadoene/adapters/CourseAdapter.kt[m
+[1m+++ b/app/src/main/java/com/example/applikasjons_avokadoene/adapters/CourseAdapter.kt[m
+[36m@@ -10,7 +10,7 @@[m [mimport com.example.applikasjons_avokadoene.models.Course[m
+ import android.widget.ImageButton[m
+ [m
+ [m
+[31m-class CourseAdapter(private val courseList: List<Course>,[m
+[32m+[m[32mclass CourseAdapter(private val courseList: MutableList<Course>,[m
+                     private val onEditCourseClick: (Course) -> Unit,[m
+                     private val onDeleteCourseClick: (Course) -> Unit,[m
+                     private val onAddCourseClick: (Course) -> Unit) :[m
+[36m@@ -55,10 +55,10 @@[m [mclass CourseAdapter(private val courseList: List<Course>,[m
+ [m
+     override fun getItemCount(): Int = courseList.size[m
+ [m
+[31m-    fun updateCourseList(newCourseList: List<Course>) {[m
+[32m+[m[32m    fun updateCourses(newCourses: List<Course>) {[m
+         courseList.clear()[m
+[31m-        courseList.addAll(newCourseList)[m
+[31m-        diffResult.dispatchUpdatesTo(this)[m
+[32m+[m[32m        courseList.addAll(newCourses)[m
+[32m+[m[32m        notifyDataSetChanged()[m
+     }[m
+ [m
+ }[m
+[1mdiff --git a/app/src/main/java/com/example/applikasjons_avokadoene/adapters/CourseDiffCallback.kt b/app/src/main/java/com/example/applikasjons_avokadoene/adapters/CourseDiffCallback.kt[m
+[1mdeleted file mode 100644[m
+[1mindex fa263bc..0000000[m
+[1m--- a/app/src/main/java/com/example/applikasjons_avokadoene/adapters/CourseDiffCallback.kt[m
+[1m+++ /dev/null[m
+[36m@@ -1,21 +0,0 @@[m
+[31m-package com.example.applikasjons_avokadoene.adapters[m
+[31m-[m
+[31m-import androidx.recyclerview.widget.DiffUtil[m
+[31m-import com.example.applikasjons_avokadoene.models.Course[m
+[31m-[m
+[31m-class CourseDiffCallback([m
+[31m-    private val oldList: List<Course>,[m
+[31m-    private val newList: List<Course>[m
+[31m-) : DiffUtil.Callback() {[m
+[31m-[m
+[31m-    override fun getOldListSize(): Int = oldList.size[m
+[31m-    override fun getNewListSize(): Int = newList.size[m
+[31m-[m
+[31m-    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {[m
+[31m-        return oldList[oldItemPosition].id == newList[newItemPosition].id[m
+[31m-    }[m
+[31m-[m
+[31m-    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {[m
+[31m-        return oldList[oldItemPosition] == newList[newItemPosition][m
+[31m-    }[m
+[31m-}[m
+[1mdiff --git a/app/src/main/res/drawable/img.png b/app/src/main/res/drawable/img.png[m
+[1mdeleted file mode 100644[m
+[1mindex 58def11..0000000[m
+Binary files a/app/src/main/res/drawable/img.png and /dev/null differ
+[1mdiff --git a/app/src/main/res/layout/activity_course_list.xml b/app/src/main/res/layout/activity_course_list.xml[m
+[1mindex 4752048..c9d5c77 100644[m
+[1m--- a/app/src/main/res/layout/activity_course_list.xml[m
+[1m+++ b/app/src/main/res/layout/activity_course_list.xml[m
+[36m@@ -16,7 +16,8 @@[m
+     <androidx.recyclerview.widget.RecyclerView[m
+         android:id="@+id/recyclerViewCourses"[m
+         android:layout_width="match_parent"[m
+[31m-        android:layout_height="match_parent"/>[m
+[32m+[m[32m        android:layout_height="0dp"[m
+[32m+[m[32m        android:layout_weight="1"/>[m
+ [m
+     <Button[m
+         android:id="@+id/btn_add_new_course"[m
