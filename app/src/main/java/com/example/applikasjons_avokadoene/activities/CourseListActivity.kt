@@ -105,14 +105,22 @@ class CourseListActivity : AppCompatActivity() {
     }
     
     private fun filterCourses(query: String) {
+        val tag = "CourseListActivity"
+        android.util.Log.d(tag, "Filtering courses with query: '$query'")
+        
         val filteredList = if (query.isEmpty()) {
+            android.util.Log.d(tag, "Empty query, showing all courses")
             allCourses
         } else {
             allCourses.filter { course ->
-                course.name.contains(query, ignoreCase = true) || 
-                course.code.contains(query, ignoreCase = true)
+                val nameMatch = course.name.contains(query, ignoreCase = true)
+                val codeMatch = course.code.contains(query, ignoreCase = true)
+                android.util.Log.d(tag, "Course: ${course.name} - Name match: $nameMatch, Code match: $codeMatch")
+                nameMatch || codeMatch
             }
         }
+        
+        android.util.Log.d(tag, "Found ${filteredList.size} matching courses")
         
         courseList.clear()
         courseList.addAll(filteredList)
@@ -169,22 +177,14 @@ class CourseListActivity : AppCompatActivity() {
                 // Apply filter if needed
                 val currentFilter = editTextSearch.text.toString()
                 if (currentFilter.isEmpty()) {
+                    courseList.clear()
                     courseList.addAll(allCourses)
                 } else {
                     filterCourses(currentFilter)
                 }
                 
-                // Test: Opprett en helt ny adapter med data
-                val newAdapter = CourseAdapter(
-                    courseList,
-                    ::editCourse,
-                    ::deleteCourse,
-                    ::addCourse,
-                    ::gradeCourse
-                )
-                
-                // Oppdater RecyclerView med den nye adapteren
-                recyclerView.adapter = newAdapter
+                // Update the existing adapter with the new data
+                courseAdapter.updateCourseList(courseList)
                 
                 android.util.Log.d(tag, "Updated adapter with ${courseList.size} courses")
                 
